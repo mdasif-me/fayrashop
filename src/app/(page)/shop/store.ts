@@ -40,8 +40,7 @@ interface ProductStore {
   applyFilters: () => void
 }
 
-// Sample products data with comprehensive filtering properties
-const sampleProducts: Product[] = [
+export const sampleProducts: Product[] = [
   {
     id: 1,
     title: 'iPhone 14 Pro Max 256GB Space Black',

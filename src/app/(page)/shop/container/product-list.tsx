@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useProductStore } from '../store'
 import { Input, Label } from '../../../../components/ui/field'
+import Link from 'next/link'
 
 const categories = [
   { id: 'all', label: 'All', icon: '🏪' },
@@ -329,11 +330,13 @@ export default function ProductList() {
                 <Card key={product.id} className="group transition-shadow hover:shadow-lg">
                   <CardContent className="p-3 sm:p-4">
                     <div className="relative mb-3 sm:mb-4">
-                      <img
-                        src={product.image || '/placeholder.svg'}
-                        alt={product.title}
-                        className="h-40 w-full rounded-md object-cover sm:h-48"
-                      />
+                      <Link href={`/product-detail?id=${product.id}`}>
+                        <img
+                          src={product.image || '/placeholder.svg'}
+                          alt={product.title}
+                          className="h-40 w-full rounded-md object-cover sm:h-48"
+                        />
+                      </Link>
                       {product.isNew && (
                         <Badge className="absolute top-2 left-2 bg-red-500 text-xs hover:bg-red-600">
                           New
@@ -349,9 +352,11 @@ export default function ProductList() {
                     </div>
 
                     <div className="space-y-2">
-                      <h3 className="line-clamp-2 text-sm leading-tight font-medium">
-                        {product.title}
-                      </h3>
+                      <Link href={`/product-detail?id=${product.id}`}>
+                        <h3 className="line-clamp-2 text-sm leading-tight font-medium transition-colors hover:text-blue-600">
+                          {product.title}
+                        </h3>
+                      </Link>
 
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="text-base font-bold text-blue-600 sm:text-lg">
