@@ -15,11 +15,11 @@ function AboutBanner() {
             WHO WE ARE
           </Button>
 
-          <h2 className="mb-4 text-3xl font-semibold md:text-4xl">
+          <h2 className="mb-4 text-3xl font-semibold md:text-4xl dark:text-white">
             Kinbo - largest electronics retail shop in the world.
           </h2>
 
-          <p className="mb-6">
+          <p className="mb-6 dark:text-gray-300">
             Pellentesque ultrices, dui vel hendrerit iaculis, ipsum velit vestibulum risus, ac
             tincidunt diam lectus id magna. Praesent maximus lobortis neque sit amet rhoncus. Nullam
             tempus lectus a dui aliquet, non ultricies nibh elementum. Nulla ac nulla dolor.
@@ -28,16 +28,16 @@ function AboutBanner() {
           <Card className="border-none shadow-none">
             <CardContent className="p-0">
               <ul className="space-y-3">
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-2 dark:text-gray-300">
                   <Check className="text-green-500" /> Great 24/7 customer services.
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-2 dark:text-gray-300">
                   <Check className="text-green-500" /> 600+ Dedicated employee.
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-2 dark:text-gray-300">
                   <Check className="text-green-500" /> 50+ Branches all over the world.
                 </li>
-                <li className="flex items-center gap-2">
+                <li className="flex items-center gap-2 dark:text-gray-300">
                   <Check className="text-green-500" /> Over 1 Million Electronics Products
                 </li>
               </ul>

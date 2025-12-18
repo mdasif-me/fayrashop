@@ -6,6 +6,7 @@ import {
   IconSearch,
   IconShoppingBag,
 } from '@intentui/icons'
+import NextLink from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Link } from '@/components/ui/link'
 import { Menu, MenuContent, MenuItem } from '@/components/ui/menu'
@@ -30,52 +31,52 @@ const categories = [
   {
     id: 1,
     label: 'Electronics',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 2,
     label: 'Fashion',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 3,
     label: 'Home & Kitchen',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 4,
     label: 'Sports',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 5,
     label: 'Books',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 6,
     label: 'Beauty & Personal Care',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 7,
     label: 'Grocery',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 8,
     label: 'Toys & Games',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 9,
     label: 'Automotive',
-    url: '#',
+    url: '/shop',
   },
   {
     id: 10,
     label: 'Health & Wellness',
-    url: '#',
+    url: '/shop',
   },
 ]
 
@@ -95,12 +96,12 @@ export default function AppNavbar(props: NavbarProps) {
         </NavbarStart>
         <NavbarGap />
         <NavbarSection>
-          <NavbarItem href="#" isCurrent>
+          <NavbarItem href="/" isCurrent>
             Home
           </NavbarItem>
-          <NavbarItem href="#">Shop</NavbarItem>
-          <NavbarItem href="#">Offers</NavbarItem>
-          <NavbarItem href="#">Orders</NavbarItem>
+          <NavbarItem href="/shop">Shop</NavbarItem>
+          <NavbarItem href="/offers">Offers</NavbarItem>
+          <NavbarItem href="/orders">Orders</NavbarItem>
           <Menu>
             <NavbarItem>
               Categories
@@ -120,9 +121,11 @@ export default function AppNavbar(props: NavbarProps) {
           <Button intent="plain" size="sq-sm" aria-label="Search for products">
             <IconSearch />
           </Button>
-          <Button intent="plain" size="sq-sm" aria-label="Your Bag">
-            <IconShoppingBag />
-          </Button>
+          <NextLink href="/cart">
+            <Button intent="plain" size="sq-sm" aria-label="Your Bag">
+              <IconShoppingBag />
+            </Button>
+          </NextLink>
           <Separator orientation="vertical" className="mr-3 ml-1 h-5" />
           <UserMenu />
         </NavbarSection>
@@ -133,9 +136,11 @@ export default function AppNavbar(props: NavbarProps) {
         <Button intent="plain" size="sq-sm" aria-label="Search for products">
           <IconSearch />
         </Button>
-        <Button intent="plain" size="sq-sm" aria-label="Your Bag">
-          <IconShoppingBag />
-        </Button>
+        <NextLink href="/cart">
+          <Button intent="plain" size="sq-sm" aria-label="Your Bag">
+            <IconShoppingBag />
+          </Button>
+        </NextLink>
         <NavbarSeparator className="mr-2.5" />
         <UserMenu />
       </NavbarMobile>

@@ -24,10 +24,10 @@ function TrustedShop() {
 
             {/* Overlay Content */}
             <div className="absolute inset-0 flex flex-col justify-center px-10 lg:left-80 lg:px-0">
-              <h2 className="max-w-72 text-2xl leading-tight font-semibold md:text-3xl">
+              <h2 className="max-w-72 text-2xl leading-tight font-semibold md:text-3xl dark:text-white">
                 Your trusted and reliable retail shop
               </h2>
-              <p className="mt-4 max-w-md text-sm md:text-base">
+              <p className="mt-4 max-w-md text-sm md:text-base dark:text-gray-200">
                 Praesent sed semper metus. Nunc aliquet dolor mauris, et fringilla elit gravida
                 eget. Nunc consequat auctor urna a placerat.
               </p>
