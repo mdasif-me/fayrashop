@@ -332,7 +332,7 @@ export default function ProductList() {
                     <div className="relative mb-3 sm:mb-4">
                       <Link href={`/product-detail?id=${product.id}`}>
                         <img
-                          src={product.image || '/placeholder.svg'}
+                          src={product.image}
                           alt={product.title}
                           className="h-40 w-full rounded-md object-cover sm:h-48"
                         />
