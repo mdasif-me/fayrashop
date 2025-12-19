@@ -1,7 +1,5 @@
-import React from 'react'
+import ProductList from './container/product-list'
 
-const Shop = () => {
-  return <div>Shop</div>
+export default function Page() {
+  return <ProductList />
 }
-
-export default Shop
