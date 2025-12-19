@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function PromotionCard() {
   return (
@@ -13,9 +14,7 @@ export default function PromotionCard() {
           <p className="mt-3 text-base">
             Jam-packed with innovation, HomePod mini delivers unexpectedly.
           </p>
-          <button className="bg-primary mt-5 rounded-md px-5 py-2.5 text-sm font-bold text-white">
-            SHOP NOW →
-          </button>
+          <Button className="mt-5 px-5 py-2.5 text-sm font-bold">SHOP NOW →</Button>
         </div>
 
         <div className="relative">
@@ -40,9 +39,7 @@ export default function PromotionCard() {
           <p className="mt-3 text-base text-white/60">
             *Data provided by internal laboratories. Industry measurement.
           </p>
-          <button className="bg-primary mt-5 rounded-md px-5 py-2.5 text-sm font-bold text-white">
-            SHOP NOW →
-          </button>
+          <Button className="mt-5 px-5 py-2.5 text-sm font-bold">SHOP NOW →</Button>
         </div>
 
         <div className="relative">

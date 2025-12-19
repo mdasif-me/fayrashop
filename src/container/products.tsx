@@ -4,8 +4,8 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Heart, ShoppingCart, Eye, Star, ArrowRight } from 'lucide-react'
-import { Button } from 'react-aria-components'
-import Timer from '../components/ui/timer'
+import { Button } from '@/components/ui/button'
+import Timer from '@/components/ui/timer'
 
 const products = [
   {

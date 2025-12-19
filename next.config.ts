@@ -1,9 +1,6 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // standalone output for Docker
-  // output: 'standalone',
-
   experimental: {
     typedRoutes: true,
   },
@@ -17,7 +14,7 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    domains: ['placehold.co'],
+    domains: ['placehold.co', 'images.unsplash.com'],
     remotePatterns: [],
   },
 }

@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import React from 'react'
+import { Button } from '@/components/ui/button'
 
 export default function LargeProduct() {
   return (
@@ -11,9 +12,7 @@ export default function LargeProduct() {
           </span>
           <h2 className="mt-3 text-5xl font-semibold">Macbook Pro</h2>
           <p className="mt-5 text-2xl">Apple M1 Max Chip. 32GB Unified Memory, 1TB SSD Storage</p>
-          <button className="bg-primary mt-5 rounded px-8 py-3 text-base font-bold text-white">
-            SHOP NOW →
-          </button>
+          <Button className="mt-5 px-8 py-3 text-base font-bold">SHOP NOW →</Button>
         </div>
 
         <div className="relative inline-block">

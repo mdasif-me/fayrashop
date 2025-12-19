@@ -13,7 +13,6 @@
     "jsx": "preserve",
     "incremental": true,
     "target": "ES2022",
-    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
