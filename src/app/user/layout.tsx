@@ -11,22 +11,22 @@ import { Separator } from '@/components/ui/separator'
 const sidebarItems = [
   {
     title: 'Overview',
-    href: '/dashboard',
+    href: '/user',
     icon: LayoutDashboard,
   },
   {
     title: 'Profile',
-    href: '/dashboard/profile',
+    href: '/user/profile',
     icon: User,
   },
   {
     title: 'Settings',
-    href: '/dashboard/settings',
+    href: '/user/settings',
     icon: Settings,
   },
   {
     title: 'Security',
-    href: '/dashboard/security',
+    href: '/user/security',
     icon: Shield,
   },
 ]

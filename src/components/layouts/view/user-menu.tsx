@@ -69,19 +69,19 @@ export function UserMenu() {
           </MenuContent>
         </MenuSubmenu>
 
-        <MenuItem href="/dashboard">
+        <MenuItem href="/user">
           <IconDashboard />
           Dashboard
         </MenuItem>
-        <MenuItem href="/dashboard/settings">
+        <MenuItem href="/user/settings">
           <IconSettings />
           Settings
         </MenuItem>
-        <MenuItem href="/dashboard/security">
+        <MenuItem href="/user/security">
           <IconShield />
           Security
         </MenuItem>
-        <MenuItem href="/support">
+        <MenuItem href="/user/support">
           <IconHeadphones />
           Customer Support
         </MenuItem>
