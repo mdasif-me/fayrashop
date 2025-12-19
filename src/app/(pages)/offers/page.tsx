@@ -128,7 +128,7 @@ export default function OffersPage() {
                       </div>
                     </div>
 
-                    <h3 className="mb-3 line-clamp-2 min-h-[3rem] font-semibold">{deal.title}</h3>
+                    <h3 className="mb-3 line-clamp-2 min-h-12 font-semibold">{deal.title}</h3>
 
                     <div className="mb-3">
                       <div className="flex items-baseline gap-2">
@@ -174,7 +174,7 @@ export default function OffersPage() {
                   <Badge className="mb-4 bg-white text-gray-900">{deal.badge}</Badge>
                   <h3 className="mb-2 text-2xl font-bold">{deal.title}</h3>
                   <p className="mb-4 text-white/90">{deal.description}</p>
-                  <Button intent="outline" className="bg-white text-gray-900 hover:bg-gray-100">
+                  <Button variant="outline" className="bg-white text-gray-900 hover:bg-gray-100">
                     Shop Now
                   </Button>
                 </div>
@@ -207,7 +207,7 @@ export default function OffersPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Min. purchase: ${coupon.minPurchase}
                     </p>
-                    <Button intent="outline" size="sm" className="mt-4 w-full">
+                    <Button variant="outline" size="sm" className="mt-4 w-full">
                       Copy Code
                     </Button>
                   </CardContent>

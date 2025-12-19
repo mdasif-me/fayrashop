@@ -87,3 +87,15 @@ export interface AppError extends Error {
   statusCode?: number
   details?: any
 }
+
+export interface Category {
+  _id: string
+  name: string
+  slug: string
+  children?: Category[]
+  productCount?: number
+}
+
+export interface CategoryTreeData {
+  categoryTree: Category[]
+}

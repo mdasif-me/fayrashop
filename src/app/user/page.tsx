@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Button, buttonStyles } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Package, ShoppingBag, Heart, Clock } from 'lucide-react'
 import Link from 'next/link'
 
@@ -115,8 +115,8 @@ export default function DashboardPage() {
             </div>
             <Link
               href="/orders"
-              className={buttonStyles({
-                intent: 'outline',
+              className={buttonVariants({
+                variant: 'outline',
                 className: 'mt-4 w-full justify-center',
               })}
             >
@@ -143,7 +143,7 @@ export default function DashboardPage() {
               <p className="text-muted-foreground text-sm">United States</p>
               <p className="text-muted-foreground mt-2 text-sm">+1 (555) 000-0000</p>
             </div>
-            <Button intent="outline" className="mt-4 w-full">
+            <Button variant="outline" className="mt-4 w-full">
               Manage Addresses
             </Button>
           </CardContent>

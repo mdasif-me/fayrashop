@@ -80,7 +80,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="flex justify-end gap-4">
-            <Button intent="outline">Cancel</Button>
+            <Button variant="outline">Cancel</Button>
             <Button>Save Changes</Button>
           </div>
         </CardContent>

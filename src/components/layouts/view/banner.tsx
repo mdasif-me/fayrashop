@@ -37,7 +37,7 @@ export default function Banner() {
           </div>
         </div>
         <Button
-          intent="plain"
+          variant="ghost"
           size="sm"
           className="group -my-1.5 -me-2 size-9 shrink-0 p-0"
           onClick={() => setIsVisible(false)}

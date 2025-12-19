@@ -265,18 +265,18 @@ interface NavbarTriggerProps extends ButtonProps {
   ref?: React.RefObject<HTMLButtonElement>
 }
 
-const NavbarTrigger = ({ className, onPress, ref, ...props }: NavbarTriggerProps) => {
+const NavbarTrigger = ({ className, onClick, ref, ...props }: NavbarTriggerProps) => {
   const { toggleNavbar } = useNavbar()
   return (
     <Button
       ref={ref}
       data-slot="navbar-trigger"
-      intent="plain"
+      variant="ghost"
       aria-label={props['aria-label'] || 'Toggle Navbar'}
-      size="sq-sm"
-      className={cx('-ml-2 min-lg:hidden', className)}
-      onPress={(event) => {
-        onPress?.(event)
+      size="icon"
+      className={twMerge('-ml-2 min-lg:hidden', className)}
+      onClick={(event: any) => {
+        onClick?.(event)
         toggleNavbar()
       }}
       {...props}

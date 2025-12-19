@@ -338,17 +338,10 @@ export default function ProductList() {
                         />
                       </Link>
                       {product.isNew && (
-                        <Badge className="absolute top-2 left-2 bg-red-500 text-xs hover:bg-red-600">
+                        <Badge className="absolute -top-4 -left-2 bg-red-500 text-xs text-white hover:bg-red-600">
                           New
                         </Badge>
                       )}
-                      <Button
-                        intent="plain"
-                        size="sq-sm"
-                        className="absolute top-2 right-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
-                      >
-                        <Heart className="h-4 w-4" />
-                      </Button>
                     </div>
 
                     <div className="space-y-2">
@@ -407,12 +400,12 @@ export default function ProductList() {
 
                       <div className="flex gap-2 pt-2">
                         <Button className="flex-1" size="sm">
-                          <ShoppingCart className="mr-1 h-4 w-4 sm:mr-2" />
+                          <ShoppingCart className="mr-1 h-4 w-4 text-white sm:mr-2" />
                           <span className="xs:inline hidden">Add to cart</span>
-                          <span className="xs:hidden">Add</span>
+                          <span className="xs:hidden text-white">Add</span>
                         </Button>
-                        <Button intent="outline" size="sm" className="bg-transparent px-2 sm:px-3">
-                          <Heart className="h-4 w-4" />
+                        <Button size="sm" className="bg-primary px-2 sm:px-3">
+                          <Heart className="h-4 w-4 text-white" />
                         </Button>
                       </div>
                     </div>

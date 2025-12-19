@@ -58,7 +58,8 @@ export function useCart() {
     })
 
   const cart = data?.cart || null
-  const itemCount = cart?.items?.reduce((sum, item) => sum + (item?.quantity || 0), 0) || 0
+  const itemCount =
+    cart?.items?.reduce((sum: number, item: CartItem) => sum + (item?.quantity || 0), 0) || 0
 
   return {
     cart,

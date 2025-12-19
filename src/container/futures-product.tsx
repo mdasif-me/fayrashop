@@ -125,7 +125,7 @@ export default function FuturesProduct() {
                   <button className="px-3 py-1 text-sm text-gray-600">TV</button>
                 </nav>
 
-                <button className="text-primary flex items-center gap-2 text-sm">
+                <button className="flex items-center gap-2 text-sm">
                   Browse All Product
                   <ArrowRight className="h-4 w-4" />
                 </button>

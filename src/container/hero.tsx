@@ -100,10 +100,9 @@ export default function Hero(): React.ReactElement {
                     <div className="my-6 flex justify-center space-x-2 lg:my-5.5 lg:justify-start lg:pt-0">
                       {Array.from({ length: count }).map((_, index) => (
                         <Button
-                          size="dot"
                           key={index}
                           onClick={() => api?.scrollTo(index)}
-                          className={`!h-2 !w-2 rounded-full transition-all ${
+                          className={`h-2! w-2! rounded-full transition-all ${
                             current === index ? 'bg-primary' : 'bg-gray-300'
                           }`}
                         />
