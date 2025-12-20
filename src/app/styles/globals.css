@@ -30,37 +30,49 @@
 
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
+  --color-primary-foreground: var(--primary-fg);
 
   --color-secondary: var(--secondary);
   --color-secondary-fg: var(--secondary-fg);
+  --color-secondary-foreground: var(--secondary-fg);
 
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-foreground: var(--accent-fg);
 
   --color-success: var(--success);
   --color-success-fg: var(--success-fg);
+  --color-success-foreground: var(--success-fg);
 
   --color-danger: var(--danger);
   --color-danger-fg: var(--danger-fg);
+  --color-danger-foreground: var(--danger-fg);
 
   --color-warning: var(--warning);
   --color-warning-fg: var(--warning-fg);
+  --color-warning-foreground: var(--warning-fg);
 
   --color-muted: var(--muted);
   --color-muted-fg: var(--muted-fg);
+  --color-muted-foreground: var(--muted-fg);
 
   --color-overlay: var(--overlay);
   --color-overlay-fg: var(--overlay-fg);
+  --color-overlay-foreground: var(--overlay-fg);
 
   --color-navbar: var(--navbar);
   --color-navbar-fg: var(--navbar-fg);
+  --color-navbar-foreground: var(--navbar-fg);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-foreground: var(--sidebar-fg);
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-fg: var(--sidebar-primary-fg);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-fg);
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-accent-fg: var(--sidebar-accent-fg);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-fg);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
