@@ -7,11 +7,16 @@ import { TextField } from '@/components/ui/text-field'
 import { Button } from '@/components/ui/button'
 import { resetPasswordSchema, ResetPasswordSchemaType } from '../schema'
 import { IconArrowRight } from '@intentui/icons'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { useToast } from '@/hooks/use-toast'
+import { fetchClient } from '@/lib/api-config'
 
 export default function ResetPasswordForm() {
   const search = useSearchParams()
   const token = search.get('token') || ''
+
+  const { toast } = useToast()
+  const router = useRouter()
 
   const {
     handleSubmit,
@@ -26,8 +31,52 @@ export default function ResetPasswordForm() {
     },
   })
 
-  const onSubmit = (data: ResetPasswordSchemaType) => {
-    console.log('data:', data)
+  const onSubmit = async (data: ResetPasswordSchemaType) => {
+    try {
+      const payload = {
+        token: data.token,
+        password: data.newPassword,
+        confirmPassword: data.confirmPassword,
+      }
+
+      const result = await fetchClient('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+
+      // If backend returns a token after reset, store it
+      const token =
+        result?.tokens?.access_token ||
+        result?.token ||
+        result?.data?.token ||
+        result?.accessToken ||
+        result?.data?.accessToken ||
+        result?.access_token ||
+        result?.data?.access_token
+
+      if (token) {
+        localStorage.setItem('token', token)
+        document.cookie = `token=${token}; path=/; max-age=86400`
+      }
+
+      if (result?.user || result?.data?.user) {
+        localStorage.setItem('user', JSON.stringify(result?.user || result?.data?.user))
+      }
+
+      toast({
+        title: 'Success',
+        description: result?.message || 'Password reset successful',
+      })
+
+      // If we got a token, go to home; otherwise go to login
+      router.push(token ? '/' : '/auth?mode=login')
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to reset password',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (

@@ -10,6 +10,7 @@ import VariantSelectorMultiple, {
 import { Button } from '@/components/ui/button'
 import { ShieldCheck, Users } from 'lucide-react'
 import { useState } from 'react'
+import { Overall } from '../../container'
 
 interface AccessoryVariant extends BaseVariantItem {
   price: number
@@ -540,6 +541,7 @@ function ProductVariant_05({
           </div>
         </div>
       </div>
+      <Overall />
     </div>
   )
 }
