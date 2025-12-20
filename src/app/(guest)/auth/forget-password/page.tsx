@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
@@ -8,12 +9,11 @@ import { Button } from '@/components/ui/button'
 import { forgetPasswordSchema, ForgetPasswordSchemaType, ResetPasswordSchemaType } from '../schema'
 import { IconArrowRight } from '@intentui/icons'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
 import { fetchClient } from '@/lib/api-config'
 
-const ForgetPassword = () => {
+function ForgetPasswordContent() {
   const {
     handleSubmit,
     control,
@@ -105,4 +105,11 @@ const ForgetPassword = () => {
     </Card>
   )
 }
-export default ForgetPassword
+
+export default function ForgetPassword() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ForgetPasswordContent />
+    </Suspense>
+  )
+}
