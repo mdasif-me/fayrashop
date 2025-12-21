@@ -60,8 +60,15 @@ export function UserMenu() {
 
   return (
     <Menu>
-      <MenuTrigger aria-label="Open Menu">
+      <MenuTrigger
+        aria-label="Open Menu"
+        className="hover:bg-muted flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors"
+      >
         <Avatar alt={user.name || 'User'} size="md" isSquare src={user.image || ''} />
+        <div className="flex flex-col text-left max-md:hidden">
+          <span className="text-sm leading-none font-semibold">{user.name || 'User'}</span>
+          <span className="text-muted-foreground text-xs">{user.email}</span>
+        </div>
       </MenuTrigger>
       <MenuContent placement="bottom right" className="min-w-60 sm:min-w-56">
         <MenuSection>
