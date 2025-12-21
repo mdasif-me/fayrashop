@@ -48,11 +48,28 @@ const Register = () => {
 
       console.log('Registration Response:', result)
 
-      router.push('/?registered=true')
+      // Store user data and token for verification banner
+      if (result?.data?.user) {
+        localStorage.setItem('user', JSON.stringify(result.data.user))
+      }
+
+      if (result?.data?.tokens?.access_token) {
+        localStorage.setItem('token', result.data.tokens.access_token)
+        document.cookie = `token=${result.data.tokens.access_token}; path=/; max-age=86400`
+      }
+
+      toast({
+        title: 'Registration Successful',
+        description: 'Please check your email to verify your account.',
+      })
+
+      // Redirect to home page (not with ?registered=true)
+      router.push('/')
+      router.refresh()
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error || '')
       if (message.toLowerCase().includes('user already exists')) {
-        router.push('/?registered=true')
+        router.push('/')
         return
       }
 
