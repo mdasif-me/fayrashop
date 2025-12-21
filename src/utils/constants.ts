@@ -5,7 +5,7 @@ export const APP_CONFIG = {
   description: 'A comprehensive Next.js boilerplate with modern tooling',
   version: '1.0.0',
   author: 'Your Name',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  url: process.env.NEXT_PUBLIC_APP_URL,
   email: 'hello@example.com',
 } as const
 
