@@ -49,8 +49,8 @@ const Register = () => {
       console.log('Registration Response:', result)
 
       router.push('/?registered=true')
-    } catch (error: any) {
-      const message = String(error?.message || '')
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error || '')
       if (message.toLowerCase().includes('user already exists')) {
         router.push('/?registered=true')
         return
@@ -58,8 +58,10 @@ const Register = () => {
 
       console.error('Registration error:', error)
 
+      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
+
       setError('root', {
-        message: message || 'Something went wrong',
+        message: message || errorMessage,
       })
     }
   }

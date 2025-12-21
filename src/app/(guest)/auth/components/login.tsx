@@ -62,9 +62,9 @@ const Login = () => {
 
       router.push('/')
       router.refresh()
-    } catch (error: any) {
+    } catch (error: unknown) {
       setError('root', {
-        message: error.message || 'Invalid email or password',
+        message: error instanceof Error ? error.message : 'Invalid email or password',
       })
     }
   }

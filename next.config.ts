@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || ''
+    const apiUrl = 'https://fayrashop-ssr.vercel.app'
     return [
       {
         source: '/api/proxy/:path*',
