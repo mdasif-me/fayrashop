@@ -119,7 +119,7 @@ export default function Banner() {
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="bg-primary mr-2 h-4 w-4 text-white" />
                     Resend Email
                   </>
                 )}
