@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { IconHeadphones } from '@intentui/icons'
+import { fetchClient } from '@/lib/api-config'
 
 const sidebarItems = [
   {
@@ -79,6 +80,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Button
                 variant="outline"
                 className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20"
+                onClick={async () => {
+                  try {
+                    await fetchClient('/v1/auth/logout')
+                  } catch (error) {
+                    console.error('Logout failed', error)
+                  } finally {
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('user')
+                    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+                    window.location.href = '/'
+                  }
+                }}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign out

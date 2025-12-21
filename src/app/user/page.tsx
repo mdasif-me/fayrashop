@@ -1,18 +1,61 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Package, ShoppingBag, Heart, Clock } from 'lucide-react'
 import Link from 'next/link'
+import { fetchClient } from '@/lib/api-config'
+
+interface UserProfile {
+  id: string
+  name: string
+  email: string
+  role: string
+  status: string
+  phone?: string
+  // Add other fields as needed
+}
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        // Try to get from local storage first for immediate display
+        const storedUser = localStorage.getItem('user')
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
+
+        // Fetch fresh data
+        const response = await fetchClient('/v1/auth/profile')
+        if (response?.data) {
+          setUser(response.data)
+          localStorage.setItem('user', JSON.stringify(response.data))
+        } else if (response) {
+          // fallback if data is directly in response
+          setUser(response)
+          localStorage.setItem('user', JSON.stringify(response))
+        }
+      } catch (error) {
+        console.error('Failed to load profile', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [])
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, Kurt Cobain! Here's an overview of your account.
+          Welcome back, {user?.name || 'User'}! Here's an overview of your account.
         </p>
       </div>
 
@@ -137,11 +180,14 @@ export default function DashboardPage() {
                   Default
                 </span>
               </div>
-              <p className="text-muted-foreground mb-1 text-sm">Kurt Cobain</p>
-              <p className="text-muted-foreground mb-1 text-sm">123 Nirvana Street</p>
-              <p className="text-muted-foreground mb-1 text-sm">Seattle, WA 98101</p>
-              <p className="text-muted-foreground text-sm">United States</p>
-              <p className="text-muted-foreground mt-2 text-sm">+1 (555) 000-0000</p>
+              <p className="text-muted-foreground mb-1 text-sm">{user?.name || 'User Name'}</p>
+              <p className="text-muted-foreground mb-1 text-sm">
+                {user?.email || 'user@example.com'}
+              </p>
+              <p className="text-muted-foreground mb-1 text-sm">
+                {user?.phone || 'No phone number'}
+              </p>
+              {/* Address fields would come from user profile if available, sticking to basic info for now */}
             </div>
             <Button variant="outline" className="mt-4 w-full">
               Manage Addresses

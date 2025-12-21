@@ -1,12 +1,53 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label, Input } from '@/components/ui/field'
+import { Label } from '@/components/ui/field'
 import { Shield, Key, Smartphone, History, AlertTriangle } from 'lucide-react'
+import { fetchClient } from '@/lib/api-config'
+import { useRouter } from 'next/navigation'
 
 export default function SecurityPage() {
+  const router = useRouter()
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      const user = JSON.parse(userStr)
+      if (user.id) setUserId(user.id)
+    }
+  }, [])
+
+  const handleDeleteAccount = async () => {
+    if (!userId) {
+      alert('User ID not found. Please refresh or log in again.')
+      return
+    }
+
+    if (
+      window.confirm(
+        'Are you sure you want to permanently delete your account? This action cannot be undone.'
+      )
+    ) {
+      try {
+        await fetchClient(`/v1/users/${userId}`, {
+          method: 'DELETE',
+        })
+        // Clear session
+        localStorage.removeItem('token')
+        localStorage.removeItem('user')
+        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+        router.push('/')
+        alert('Account deleted successfully.')
+      } catch (error) {
+        console.error('Failed to delete account', error)
+        alert('Failed to delete account. Please try again.')
+      }
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -47,8 +88,7 @@ export default function SecurityPage() {
               type="password"
               className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             />
-          </div>{' '}
-          {/* Fixed missing closing div tag for the last input group locally before writing */}
+          </div>
           <div className="mt-4 flex justify-end">
             <Button>Update Password</Button>
           </div>
@@ -84,7 +124,11 @@ export default function SecurityPage() {
             <p className="mt-1 text-sm text-red-700 dark:text-red-400">
               Permanently delete your account and all of your content. This action cannot be undone.
             </p>
-            <Button variant="destructive" className="mt-4 bg-red-600 text-white hover:bg-red-700">
+            <Button
+              variant="destructive"
+              className="mt-4 bg-red-600 text-white hover:bg-red-700"
+              onClick={handleDeleteAccount}
+            >
               Delete Account
             </Button>
           </div>
