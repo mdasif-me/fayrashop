@@ -1,13 +1,55 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label, Input } from '@/components/ui/field'
+import { Label } from '@/components/ui/field'
 import { Avatar } from '@/components/ui/avatar'
 import { Camera } from 'lucide-react'
+import { fetchClient } from '@/lib/api-config'
+
+interface UserProfile {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  // User name might need to be split for first/last or just shown in one
+}
 
 export default function ProfilePage() {
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const storedUser = localStorage.getItem('user')
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
+
+        const response = await fetchClient('/v1/auth/profile')
+        if (response?.data) {
+          setUser(response.data)
+          localStorage.setItem('user', JSON.stringify(response.data))
+        } else if (response) {
+          setUser(response)
+          localStorage.setItem('user', JSON.stringify(response))
+        }
+      } catch (error) {
+        console.error('Failed to load profile', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadProfile()
+  }, [])
+
+  if (loading && !user) {
+    return <div>Loading profile...</div>
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,7 +66,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-6">
             <div className="relative">
               <Avatar
-                src="https://intentui.com/images/avatar/cobain.jpg"
+                src="https://intentui.com/images/avatar/cobain.jpg" // Placeholder for now unless user has avatar URL
                 alt="Profile picture"
                 size="xl"
                 className="h-24 w-24"
@@ -41,21 +83,14 @@ export default function ProfilePage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="firstName">First name</Label>
+              <Label htmlFor="className">Full Name</Label>
               <input
-                id="firstName"
+                id="name"
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                defaultValue="Kurt"
+                defaultValue={user?.name || ''}
               />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="lastName">Last name</Label>
-              <input
-                id="lastName"
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                defaultValue="Cobain"
-              />
-            </div>
+            {/* Split name removed as API usually returns single name field based on provided JSON */}
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -65,7 +100,8 @@ export default function ProfilePage() {
                 id="email"
                 type="email"
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                defaultValue="kurt@nirvana.com"
+                defaultValue={user?.email || ''}
+                disabled // Usually email is not editable directly
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -74,7 +110,7 @@ export default function ProfilePage() {
                 id="phone"
                 type="tel"
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                defaultValue="+1 (555) 000-0000"
+                defaultValue={user?.phone || ''}
               />
             </div>
           </div>

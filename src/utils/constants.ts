@@ -29,19 +29,20 @@ export const ROUTES = {
 
 export const API_ROUTES = {
   AUTH: {
-    SIGN_IN: '/api/auth/sign-in',
-    SIGN_UP: '/api/auth/sign-up',
-    SIGN_OUT: '/api/auth/sign-out',
-    REFRESH: '/api/auth/refresh',
-    FORGOT_PASSWORD: '/api/auth/forget-password',
-    RESET_PASSWORD: '/api/auth/reset-password',
-    VERIFY_EMAIL: '/api/auth/verify-email',
+    SIGN_IN: '/v1/auth/login',
+    SIGN_UP: '/v1/auth/register',
+    SIGN_OUT: '/v1/auth/logout',
+    REFRESH: '/v1/auth/refresh',
+    FORGOT_PASSWORD: '/v1/auth/forgot-password',
+    RESET_PASSWORD: '/v1/auth/reset-password',
+    VERIFY_EMAIL: '/v1/auth/verify-email',
+    PROFILE: '/v1/auth/profile',
   },
   USER: {
-    PROFILE: '/api/user/profile',
-    UPDATE: '/api/user/update',
-    DELETE: '/api/user/delete',
-    CHANGE_PASSWORD: '/api/user/change-password',
+    PROFILE: '/v1/users/profile', // Keeping this if there's a specific user profile endpoint differing from auth profile
+    UPDATE: '/v1/users', // usually /v1/users/:id
+    DELETE: '/v1/users', // usually /v1/users/:id
+    CHANGE_PASSWORD: '/v1/users/change-password',
   },
   UPLOAD: {
     IMAGE: '/api/upload/image',
