@@ -9,10 +9,12 @@ import {
   Service,
 } from '@/container'
 import Category from '../container/category'
+import { EmailVerificationBanner } from '@/components/email-verification-banner'
 
 const Home = () => {
   return (
     <div>
+      <EmailVerificationBanner />
       <Hero />
       <Service />
       <Products />
