@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { LayoutDashboard, Settings, Shield, User, LogOut, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -40,6 +40,24 @@ const sidebarItems = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
+  const [authorized, setAuthorized] = useState(false)
+
+  useEffect(() => {
+    // Check if running on client side
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        router.push('/auth')
+      } else {
+        setAuthorized(true)
+      }
+    }
+  }, [router])
+
+  if (!authorized) {
+    return null
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
