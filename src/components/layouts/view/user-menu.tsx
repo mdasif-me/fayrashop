@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import {
   IconCommandRegular,
   IconDashboard,
@@ -36,8 +37,8 @@ export function UserMenu() {
   useEffect(() => {
     setMounted(true)
     const loadUser = async () => {
-      const storedUser = localStorage.getItem('user')
-      const token = localStorage.getItem('token')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null
 
       if (token) {
         if (storedUser) {
@@ -66,7 +67,7 @@ export function UserMenu() {
     window.location.href = '/'
   }
 
-  if (!mounted) return null // Prevent hydration mismatch
+  if (!mounted) return <div className="size-8" /> // Use a placeholder to keep navbar height consistent
 
   if (!user) {
     return (
@@ -76,7 +77,7 @@ export function UserMenu() {
         size="sm"
         className="bg-primary hover:bg-primary/90 text-white"
       >
-        <a href="/auth">Login</a>
+        <Link href="/auth">Login</Link>
       </Button>
     )
   }

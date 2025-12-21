@@ -85,82 +85,84 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-8 lg:flex-row">
-        <aside className="w-full flex-shrink-0 lg:w-64">
-          <div className="bg-card text-card-foreground sticky top-24 rounded-lg border shadow-sm">
-            <div className="flex flex-col items-center p-6 text-center">
-              {authorized && user ? (
-                <>
+        <aside className="w-full shrink-0 lg:w-64">
+          <div className="bg-card text-card-foreground sticky top-24 overflow-hidden rounded-lg border shadow-sm">
+            {authorized && user ? (
+              <>
+                <div className="bg-muted/30 flex flex-col items-center px-6 py-8 text-center">
                   <div className="relative mb-3">
                     <Avatar
                       src={user.image || ''}
                       alt={user.name || 'User'}
                       size="xl"
-                      className="h-20 w-20"
+                      className="ring-primary/10 h-20 w-20 ring-2 ring-offset-2"
                     />
                   </div>
                   <h2 className="text-lg font-bold tracking-tight">{user.name || 'User'}</h2>
                   <p className="text-muted-foreground text-xs break-all">{user.email}</p>
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-3 py-4">
-                  <Button asChild className="bg-primary hover:bg-primary/90 w-full text-white">
-                    <Link href="/auth">Login to Account</Link>
+                </div>
+                <Separator />
+                <div className="p-4">
+                  <nav className="flex flex-col gap-1.5">
+                    {sidebarItems.map((item) => {
+                      const isActive = pathname === item.href
+                      const Icon = item.icon
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href as any}
+                          className={cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
+                            isActive
+                              ? 'bg-primary text-white shadow-sm'
+                              : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span>{item.title}</span>
+                          {isActive && <ChevronRight className="ml-auto h-4 w-4 opacity-70" />}
+                        </Link>
+                      )
+                    })}
+                  </nav>
+                </div>
+                <Separator />
+                <div className="p-4">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start border-red-100 text-red-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-950/20"
+                    onClick={async () => {
+                      try {
+                        await fetchClient('/v1/auth/logout')
+                      } catch (error) {
+                        console.error('Logout failed', error)
+                      } finally {
+                        localStorage.removeItem('token')
+                        localStorage.removeItem('user')
+                        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+                        window.location.href = '/'
+                      }
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
                   </Button>
                 </div>
-              )}
-            </div>
-            <Separator />
-            <div className="p-4">
-              <nav className="flex flex-col gap-2">
-                {authorized ? (
-                  sidebarItems.map((item) => {
-                    const isActive = pathname === item.href
-                    const Icon = item.icon
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href as any}
-                        className={cn(
-                          'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                          isActive
-                            ? 'bg-primary text-white'
-                            : 'hover:bg-muted text-muted-foreground hover:text-foreground'
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.title}
-                        {isActive && <ChevronRight className="ml-auto h-4 w-4 opacity-50" />}
-                      </Link>
-                    )
-                  })
-                ) : (
-                  <p className="text-muted-foreground py-4 text-center text-sm italic">
-                    Navigation disabled
-                  </p>
-                )}
-              </nav>
-            </div>
-            <Separator />
-            {authorized && (
-              <div className="p-4">
+              </>
+            ) : (
+              <div className="flex flex-col items-center p-8 text-center">
+                <div className="bg-primary/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+                  <User className="text-primary h-6 w-6" />
+                </div>
+                <h2 className="mb-2 text-lg font-bold">Welcome!</h2>
+                <p className="text-muted-foreground mb-6 text-sm">
+                  Sign in to access your dashboard settings.
+                </p>
                 <Button
-                  variant="outline"
-                  className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20"
-                  onClick={async () => {
-                    try {
-                      await fetchClient('/v1/auth/logout')
-                    } catch (error) {
-                      console.error('Logout failed', error)
-                    } finally {
-                      localStorage.removeItem('token')
-                      localStorage.removeItem('user')
-                      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-                      window.location.href = '/'
-                    }
-                  }}
+                  asChild
+                  className="bg-primary hover:bg-primary/90 w-full text-white shadow-md"
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
+                  <Link href="/auth">Sign In</Link>
                 </Button>
               </div>
             )}
