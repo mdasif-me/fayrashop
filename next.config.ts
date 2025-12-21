@@ -12,8 +12,16 @@ const nextConfig: NextConfig = {
   },
 
   images: {
-    domains: ['placehold.co', 'images.unsplash.com'],
-    remotePatterns: [],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
   },
 
   async rewrites() {
