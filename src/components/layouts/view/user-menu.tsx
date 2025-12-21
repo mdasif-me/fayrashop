@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import {
   IconCommandRegular,
   IconDashboard,
@@ -12,6 +13,7 @@ import {
   IconSun,
 } from '@intentui/icons'
 import { Avatar } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   Menu,
   MenuContent,
@@ -27,22 +29,45 @@ import { useTheme } from 'next-themes'
 
 export function UserMenu() {
   const { resolvedTheme, setTheme } = useTheme()
+  const [user, setUser] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const storedUser = localStorage.getItem('user')
+    const token = localStorage.getItem('token')
+    if (storedUser && token) {
+      setUser(JSON.parse(storedUser))
+    }
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+    window.location.href = '/'
+  }
+
+  if (!mounted) return null // Prevent hydration mismatch
+
+  if (!user) {
+    return (
+      <Button asChild variant="default" size="sm">
+        <a href="/auth">Login</a>
+      </Button>
+    )
+  }
 
   return (
     <Menu>
       <MenuTrigger aria-label="Open Menu">
-        <Avatar
-          alt="cobain"
-          size="md"
-          isSquare
-          src="https://intentui.com/images/avatar/cobain.jpg"
-        />
+        <Avatar alt={user.name || 'User'} size="md" isSquare src={user.image || ''} />
       </MenuTrigger>
       <MenuContent placement="bottom right" className="min-w-60 sm:min-w-56">
         <MenuSection>
           <MenuHeader separator>
-            <span className="block">Kurt Cobain</span>
-            <span className="text-muted-fg font-normal">@cobain</span>
+            <span className="block">{user.name || 'User'}</span>
+            <span className="text-muted-fg font-normal">{user.email}</span>
           </MenuHeader>
         </MenuSection>
         <MenuSubmenu>
@@ -85,7 +110,7 @@ export function UserMenu() {
           <IconHeadphones />
           Customer Support
         </MenuItem>
-        <MenuItem href="#logout">
+        <MenuItem onAction={handleLogout}>
           <IconLogout />
           Log out
         </MenuItem>
