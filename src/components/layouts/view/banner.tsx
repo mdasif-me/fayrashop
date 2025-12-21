@@ -2,18 +2,22 @@
 
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { TicketPercent, XIcon, Mail } from 'lucide-react'
+import { TicketPercent, XIcon, Mail, RefreshCw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import Timer from '../../ui/timer'
+import { fetchClient } from '@/lib/api-config'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Banner() {
   const [isVisible, setIsVisible] = useState(true)
   const [userStatus, setUserStatus] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string>('')
+  const [isResending, setIsResending] = useState(false)
 
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { toast } = useToast()
 
   const isHome = pathname === '/'
   const isRegistrationSuccess = isHome && searchParams.get('registered') === 'true'
@@ -34,6 +38,29 @@ export default function Banner() {
 
   // Show verification message if user status is PENDING
   const showVerificationMessage = userStatus === 'PENDING'
+
+  const handleResendVerification = async () => {
+    setIsResending(true)
+    try {
+      await fetchClient('/v1/auth/resend-verification', {
+        method: 'POST',
+        body: JSON.stringify({ email: userEmail }),
+      })
+
+      toast({
+        title: 'Verification Email Sent',
+        description: 'Please check your email inbox.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to resend verification email',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsResending(false)
+    }
+  }
 
   if (!isVisible) return null
 
@@ -77,14 +104,34 @@ export default function Banner() {
                 </>
               )}
             </div>
-            {!isRegistrationSuccess && !showVerificationMessage && (
+            {showVerificationMessage ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-sm"
+                onClick={handleResendVerification}
+                disabled={isResending}
+              >
+                {isResending ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Resend Email
+                  </>
+                )}
+              </Button>
+            ) : !isRegistrationSuccess ? (
               <div className="flex gap-3 max-md:flex-wrap">
                 <Timer />
                 <Button size="sm" className="text-sm">
                   Buy now
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
         <Button
