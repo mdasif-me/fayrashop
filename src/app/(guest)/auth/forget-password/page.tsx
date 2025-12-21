@@ -37,10 +37,10 @@ function ForgetPasswordContent() {
         title: 'Success',
         description: 'If an account exists, a reset link has been sent.',
       })
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to request password reset',
+        description: error instanceof Error ? error.message : 'Failed to request password reset',
         variant: 'destructive',
       })
     }

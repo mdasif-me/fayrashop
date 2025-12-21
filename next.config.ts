@@ -17,11 +17,16 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    const apiUrl = 'https://fayrashop-ssr.vercel.app'
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+
+    if (!apiUrl) {
+      console.warn('WARNING: NEXT_PUBLIC_API_URL is not defined in .env')
+    }
+
     return [
       {
         source: '/api/proxy/:path*',
-        destination: `${apiUrl}/:path*`,
+        destination: `${apiUrl || 'https://fayrashop-ssr.vercel.app'}/:path*`,
       },
     ]
   },
