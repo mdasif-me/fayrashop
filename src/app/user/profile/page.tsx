@@ -65,12 +65,7 @@ export default function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-6">
             <div className="relative">
-              <Avatar
-                src="https://intentui.com/images/avatar/cobain.jpg" // Placeholder for now unless user has avatar URL
-                alt="Profile picture"
-                size="xl"
-                className="h-24 w-24"
-              />
+              <Avatar src="" alt="Profile picture" size="xl" className="h-24 w-24" />
               <button className="bg-primary hover:bg-primary/90 absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg">
                 <Camera className="h-4 w-4" />
               </button>
