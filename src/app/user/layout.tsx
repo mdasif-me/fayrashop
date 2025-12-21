@@ -7,6 +7,7 @@ import { LayoutDashboard, Settings, Shield, User, LogOut, ChevronRight } from 'l
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { IconHeadphones } from '@intentui/icons'
 
 const sidebarItems = [
   {
@@ -28,6 +29,11 @@ const sidebarItems = [
     title: 'Security',
     href: '/user/security',
     icon: Shield,
+  },
+  {
+    title: 'Customer Support',
+    href: '/user/support',
+    icon: IconHeadphones,
   },
 ]
 
@@ -71,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Separator />
             <div className="p-4">
               <Button
-                intent="plain"
+                variant="outline"
                 className="w-full justify-start text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20"
               >
                 <LogOut className="mr-2 h-4 w-4" />

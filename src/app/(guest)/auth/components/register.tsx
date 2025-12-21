@@ -11,11 +11,15 @@ import { Description } from '@/components/ui/field'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { IconArrowRight } from '@intentui/icons'
+import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
+import { fetchClient } from '@/lib/api-config'
 
 const Register = () => {
   const {
     handleSubmit,
     control,
+    setError,
     formState: { errors },
   } = useForm<RegisterType>({
     resolver: zodResolver(registerSchema),
@@ -27,9 +31,37 @@ const Register = () => {
       role: ERole.USER,
     },
   })
-  const onSubmit = (data: RegisterType) => {
-    // Do something with the form data
-    console.log(data)
+
+  const { toast } = useToast()
+  const router = useRouter()
+
+  const onSubmit = async (data: RegisterType) => {
+    try {
+      // Create a copy of data to avoid mutating the form state
+      // Remove confirmPassword as backend likely doesn't expect it
+      const { confirmPassword, ...payload } = data
+
+      const result = await fetchClient('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })
+
+      console.log('Registration Response:', result)
+
+      router.push('/?registered=true')
+    } catch (error: any) {
+      const message = String(error?.message || '')
+      if (message.toLowerCase().includes('user already exists')) {
+        router.push('/?registered=true')
+        return
+      }
+
+      console.error('Registration error:', error)
+
+      setError('root', {
+        message: message || 'Something went wrong',
+      })
+    }
   }
 
   return (
@@ -115,9 +147,9 @@ const Register = () => {
           </Description>
         </div>
       </div>
-      <Button type="submit" className={`w-full uppercase`}>
+      <Button type="submit" className={`w-full text-white! uppercase`}>
         Register
-        <IconArrowRight className="shrink-0 !text-white" />
+        <IconArrowRight className="shrink-0 text-white!" />
       </Button>
     </Form>
   )

@@ -115,7 +115,7 @@ export default function SupportPage() {
                     <p className="text-muted-foreground mb-2 text-sm">
                       Get response within 24 hours.
                     </p>
-                    <Button intent="outline" size="sm">
+                    <Button variant="outline" size="sm">
                       Send Email
                     </Button>
                   </div>
@@ -128,7 +128,7 @@ export default function SupportPage() {
                     <p className="text-muted-foreground mb-2 text-sm">
                       Browse extensive documentation.
                     </p>
-                    <Button intent="outline" size="sm">
+                    <Button variant="outline" size="sm">
                       Visit Center
                     </Button>
                   </div>
@@ -143,5 +143,5 @@ export default function SupportPage() {
 }
 
 function Separator() {
-  return <div className="bg-border my-2 h-[1px] w-full"></div>
+  return <div className="bg-border my-2 h-px w-full"></div>
 }

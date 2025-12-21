@@ -8,11 +8,15 @@ import { Button } from '@/components/ui/button'
 import { IconArrowRight } from '@intentui/icons'
 import { loginSchema, type LoginSchemaType } from '../schema'
 import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
+import { useRouter } from 'next/navigation'
+import { fetchClient } from '@/lib/api-config'
 
 const Login = () => {
   const {
     handleSubmit,
     control,
+    setError,
     formState: { errors },
   } = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
@@ -21,9 +25,48 @@ const Login = () => {
       password: '',
     },
   })
-  const onSubmit = (data: LoginSchemaType) => {
-    // Do something with the form data
-    console.log(data)
+  const { toast } = useToast()
+  const router = useRouter()
+
+  const onSubmit = async (data: LoginSchemaType) => {
+    try {
+      const result = await fetchClient('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+
+      console.log('Login API Response:', result)
+
+      const token =
+        result?.tokens?.access_token ||
+        result?.token ||
+        result?.data?.token ||
+        result?.accessToken ||
+        result?.data?.accessToken ||
+        result?.access_token ||
+        result?.data?.access_token
+
+      if (token) {
+        localStorage.setItem('token', token)
+        document.cookie = `token=${token}; path=/; max-age=86400`
+      }
+
+      if (result?.user || result?.data?.user) {
+        localStorage.setItem('user', JSON.stringify(result?.user || result?.data?.user))
+      }
+
+      toast({
+        title: 'Login Successful',
+        description: 'Welcome back!',
+      })
+
+      router.push('/')
+      router.refresh()
+    } catch (error: any) {
+      setError('root', {
+        message: error.message || 'Invalid email or password',
+      })
+    }
   }
 
   return (
@@ -71,9 +114,15 @@ const Login = () => {
         />
       </div>
 
-      <Button type="submit" className={`w-full uppercase`}>
+      {errors.root && (
+        <div className="text-destructive mb-4 text-center text-sm font-medium">
+          {errors.root.message}
+        </div>
+      )}
+
+      <Button type="submit" className={`w-full text-white! uppercase`}>
         Sign in
-        <IconArrowRight className="shrink-0 !text-white" />
+        <IconArrowRight className="shrink-0 text-white!" />
       </Button>
     </Form>
   )

@@ -118,11 +118,11 @@ export default function AppNavbar(props: NavbarProps) {
         </NavbarSection>
         <NavbarSpacer />
         <NavbarSection className="max-md:hidden">
-          <Button intent="plain" size="sq-sm" aria-label="Search for products">
+          <Button variant="ghost" size="icon" aria-label="Search for products">
             <IconSearch />
           </Button>
           <NextLink href="/cart">
-            <Button intent="plain" size="sq-sm" aria-label="Your Bag">
+            <Button variant="ghost" size="icon" aria-label="Your Bag">
               <IconShoppingBag />
             </Button>
           </NextLink>
@@ -133,11 +133,11 @@ export default function AppNavbar(props: NavbarProps) {
       <NavbarMobile>
         <NavbarTrigger />
         <NavbarSpacer />
-        <Button intent="plain" size="sq-sm" aria-label="Search for products">
+        <Button variant="ghost" size="icon" aria-label="Search for products">
           <IconSearch />
         </Button>
         <NextLink href="/cart">
-          <Button intent="plain" size="sq-sm" aria-label="Your Bag">
+          <Button variant="ghost" size="icon" aria-label="Your Bag">
             <IconShoppingBag />
           </Button>
         </NextLink>

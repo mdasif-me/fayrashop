@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Outfit } from 'next/font/google'
+import { Suspense } from 'react'
 import './styles/globals.css'
 import { rootMetadata } from '@/config/root-metadata.config'
 import { RootWrapper } from './root-wrapper'
@@ -19,7 +20,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
         <RootWrapper>
-          <Banner />
+          <Suspense fallback={<div></div>}>
+            <Banner />
+          </Suspense>
           <AppNavbar />
           {children}
           <Footer />

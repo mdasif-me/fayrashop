@@ -243,7 +243,7 @@ export default function ContactPage() {
                     <span>How can I track my order?</span>
                   </li>
                 </ul>
-                <Button intent="outline" className="mt-6 w-full">
+                <Button variant="outline" className="mt-6 w-full">
                   View All FAQs
                 </Button>
               </CardContent>

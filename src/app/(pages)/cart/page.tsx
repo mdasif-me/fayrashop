@@ -81,7 +81,7 @@ export default function CartPage() {
               key={item.id}
               className="flex items-center gap-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
             >
-              <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700">
                 <Image src={item.image} alt={item.name} fill className="object-cover" />
               </div>
 
@@ -97,8 +97,8 @@ export default function CartPage() {
 
               <div className="flex items-center gap-3">
                 <Button
-                  intent="outline"
-                  size="sq-sm"
+                  variant="outline"
+                  size="icon"
                   onClick={() => updateQuantity(item.id, item.quantity - 1)}
                   aria-label="Decrease quantity"
                 >
@@ -106,8 +106,8 @@ export default function CartPage() {
                 </Button>
                 <span className="w-12 text-center font-semibold">{item.quantity}</span>
                 <Button
-                  intent="outline"
-                  size="sq-sm"
+                  variant="outline"
+                  size="icon"
                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                   aria-label="Increase quantity"
                 >
@@ -116,8 +116,8 @@ export default function CartPage() {
               </div>
 
               <Button
-                intent="danger"
-                size="sq-sm"
+                variant="destructive"
+                size="icon"
                 onClick={() => removeItem(item.id)}
                 aria-label="Remove item"
               >
@@ -158,7 +158,7 @@ export default function CartPage() {
             </Button>
 
             <Link href="/shop">
-              <Button intent="outline" className="w-full">
+              <Button variant="outline" className="w-full">
                 Continue Shopping
               </Button>
             </Link>

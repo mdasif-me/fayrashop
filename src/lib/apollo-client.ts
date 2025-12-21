@@ -1,8 +1,9 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client'
+import { API_BASE_URL } from './api-config'
 
 // Configure the HTTP link to your GraphQL endpoint
 const httpLink = new HttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql',
+  uri: `${API_BASE_URL}/graphql`,
   // You can add custom headers here if needed
   // headers: {
   //   authorization: typeof window !== 'undefined' ? localStorage.getItem('token') : '',

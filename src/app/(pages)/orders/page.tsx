@@ -101,7 +101,7 @@ export default function OrdersPage() {
         {['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'].map((filter) => (
           <Button
             key={filter}
-            intent={selectedFilter === filter ? 'primary' : 'outline'}
+            variant={selectedFilter === filter ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedFilter(filter)}
             className="whitespace-nowrap capitalize"
@@ -174,16 +174,16 @@ export default function OrdersPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-3">
-                    <Button intent="outline" size="sm">
+                    <Button variant="outline" size="sm">
                       <Eye className="mr-2 h-4 w-4" />
                       View Details
                     </Button>
-                    <Button intent="outline" size="sm">
+                    <Button variant="outline" size="sm">
                       <Download className="mr-2 h-4 w-4" />
                       Download Invoice
                     </Button>
                     {order.status === 'delivered' && (
-                      <Button intent="primary" size="sm">
+                      <Button variant="default" size="sm">
                         Buy Again
                       </Button>
                     )}

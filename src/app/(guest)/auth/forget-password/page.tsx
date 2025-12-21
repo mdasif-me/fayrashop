@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
@@ -8,10 +9,11 @@ import { Button } from '@/components/ui/button'
 import { forgetPasswordSchema, ForgetPasswordSchemaType, ResetPasswordSchemaType } from '../schema'
 import { IconArrowRight } from '@intentui/icons'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useToast } from '@/hooks/use-toast'
+import { fetchClient } from '@/lib/api-config'
 
-const ForgetPassword = () => {
+function ForgetPasswordContent() {
   const {
     handleSubmit,
     control,
@@ -22,9 +24,26 @@ const ForgetPassword = () => {
       email: '',
     },
   })
-  const onSubmit = (data: ForgetPasswordSchemaType) => {
-    // Do something with the form data
-    console.log('data:', data)
+
+  const { toast } = useToast()
+
+  const onSubmit = async (data: ForgetPasswordSchemaType) => {
+    try {
+      await fetchClient('/auth/forgot-password', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      })
+      toast({
+        title: 'Success',
+        description: 'If an account exists, a reset link has been sent.',
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to request password reset',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (
@@ -57,9 +76,9 @@ const ForgetPassword = () => {
               )}
             />
           </div>
-          <Button type="submit" className={`w-full uppercase`}>
+          <Button type="submit" className={`w-full text-white! uppercase`}>
             Send Code
-            <IconArrowRight className="shrink-0 !text-white" />
+            <IconArrowRight className="shrink-0 text-white!" />
           </Button>
           <article className="mt-4 space-y-1">
             <p className="text-muted-fg text-sm">
@@ -86,4 +105,11 @@ const ForgetPassword = () => {
     </Card>
   )
 }
-export default ForgetPassword
+
+export default function ForgetPassword() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ForgetPasswordContent />
+    </Suspense>
+  )
+}

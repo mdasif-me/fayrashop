@@ -72,7 +72,7 @@ export default function SecurityPage() {
               We recommend enabling 2FA for better security.
             </p>
           </div>
-          <Button intent="outline">Enable 2FA</Button>
+          <Button variant="outline">Enable 2FA</Button>
         </CardContent>
       </Card>
 
@@ -84,7 +84,7 @@ export default function SecurityPage() {
             <p className="mt-1 text-sm text-red-700 dark:text-red-400">
               Permanently delete your account and all of your content. This action cannot be undone.
             </p>
-            <Button intent="danger" className="mt-4 bg-red-600 text-white hover:bg-red-700">
+            <Button variant="destructive" className="mt-4 bg-red-600 text-white hover:bg-red-700">
               Delete Account
             </Button>
           </div>

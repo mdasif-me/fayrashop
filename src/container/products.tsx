@@ -75,7 +75,7 @@ export default function Products() {
             <p className="ml-3">Deals ends in</p>
             <Timer />
           </article>
-          <Button className="text-primary flex items-center gap-2">
+          <Button className="flex items-center gap-2">
             Browse All Product{' '}
             <span>
               <ArrowRight></ArrowRight>
