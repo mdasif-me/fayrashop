@@ -28,7 +28,7 @@ async function refreshAuthToken() {
     data = null
   }
 
-  console.log(`[API] POST /auth/refresh - Status: ${response.status}`, data)
+  console.log(`[API] POST /v1/auth/refresh - Status: ${response.status}`, data)
 
   if (!response.ok) {
     throw new Error(
@@ -36,7 +36,9 @@ async function refreshAuthToken() {
     )
   }
 
-  const token = data?.token || data?.data?.token
+  // Handle the actual API response structure
+  const token = data?.data?.access_token || data?.access_token || data?.token || data?.data?.token
+
   if (!token) {
     throw new Error('No token received from refresh endpoint')
   }
