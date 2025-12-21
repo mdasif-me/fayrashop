@@ -29,9 +29,9 @@ function VerifyEmailContent() {
         })
         setStatus('success')
         setMessage(result?.message || 'Your email has been successfully verified!')
-      } catch (error: any) {
+      } catch (error: unknown) {
         setStatus('error')
-        setMessage(error.message || 'Verification failed.')
+        setMessage(error instanceof Error ? error.message : 'Verification failed.')
       }
     }
 

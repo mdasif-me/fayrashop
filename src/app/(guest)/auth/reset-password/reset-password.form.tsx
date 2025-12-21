@@ -70,10 +70,10 @@ export default function ResetPasswordForm() {
 
       // If we got a token, go to home; otherwise go to login
       router.push(token ? '/' : '/auth?mode=login')
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: 'Error',
-        description: error.message || 'Failed to reset password',
+        description: error instanceof Error ? error.message : 'Failed to reset password',
         variant: 'destructive',
       })
     }
