@@ -30,7 +30,7 @@ const Login = () => {
 
   const onSubmit = async (data: LoginSchemaType) => {
     try {
-      const result = await fetchClient('/auth/login', {
+      const result = await fetchClient('/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify(data),
       })

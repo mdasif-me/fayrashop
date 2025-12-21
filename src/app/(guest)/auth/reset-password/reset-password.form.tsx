@@ -39,7 +39,7 @@ export default function ResetPasswordForm() {
         confirmPassword: data.confirmPassword,
       }
 
-      const result = await fetchClient('/auth/reset-password', {
+      const result = await fetchClient('/v1/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify(payload),
       })

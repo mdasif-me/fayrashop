@@ -41,7 +41,7 @@ const Register = () => {
       // Remove confirmPassword as backend likely doesn't expect it
       const { confirmPassword, ...payload } = data
 
-      const result = await fetchClient('/auth/register', {
+      const result = await fetchClient('/v1/auth/register', {
         method: 'POST',
         body: JSON.stringify(payload),
       })

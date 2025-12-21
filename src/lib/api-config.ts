@@ -1,7 +1,4 @@
-const SERVER_API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/+$/, '')
-const CLIENT_API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '')
-
-export const API_BASE_URL = typeof window === 'undefined' ? SERVER_API_URL : CLIENT_API_URL
+export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
 
 function getStoredToken() {
   if (typeof window === 'undefined') return null
@@ -15,7 +12,7 @@ function setStoredToken(token: string) {
 }
 
 async function refreshAuthToken() {
-  const url = `${API_BASE_URL}/auth/refresh`
+  const url = `${API_BASE_URL}/v1/auth/refresh`
 
   const response = await fetch(url, {
     method: 'POST',

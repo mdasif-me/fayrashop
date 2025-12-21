@@ -29,7 +29,7 @@ function ForgetPasswordContent() {
 
   const onSubmit = async (data: ForgetPasswordSchemaType) => {
     try {
-      await fetchClient('/auth/forgot-password', {
+      await fetchClient('/v1/auth/forgot-password', {
         method: 'POST',
         body: JSON.stringify(data),
       })

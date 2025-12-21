@@ -23,7 +23,7 @@ function VerifyEmailContent() {
 
     const verify = async () => {
       try {
-        const result = await fetchClient('/auth/verify-email', {
+        const result = await fetchClient('/v1/auth/verify-email', {
           method: 'POST',
           body: JSON.stringify({ token }),
         })
