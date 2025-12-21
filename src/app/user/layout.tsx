@@ -49,16 +49,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     setMounted(true)
-    // Check if running on client side
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token')
-      const storedUser = localStorage.getItem('user')
-      if (token && storedUser) {
-        setAuthorized(true)
-        setUser(JSON.parse(storedUser))
+    const loadData = async () => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token')
+        const storedUser = localStorage.getItem('user')
+
+        if (token) {
+          try {
+            // First set from storage for immediate feel
+            if (storedUser) {
+              setAuthorized(true)
+              setUser(JSON.parse(storedUser))
+            }
+
+            // Then fetch fresh data
+            const response = await fetchClient('/v1/auth/profile')
+            const userData = response?.data || response
+            if (userData) {
+              setAuthorized(true)
+              setUser(userData)
+              localStorage.setItem('user', JSON.stringify(userData))
+            }
+          } catch (error) {
+            console.error('Failed to authorize', error)
+            setAuthorized(false)
+          }
+        }
       }
     }
-  }, [router])
+    loadData()
+  }, [])
 
   if (!mounted) return null
 
@@ -82,18 +102,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <p className="text-muted-foreground text-xs break-all">{user.email}</p>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="bg-muted flex h-20 w-20 items-center justify-center rounded-full">
-                    <User className="text-muted-foreground h-10 w-10" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold tracking-tight">Guest Account</h2>
-                    <p className="text-muted-foreground text-sm">
-                      Please login to access your account
-                    </p>
-                  </div>
-                  <Button asChild className="mt-2 w-full">
-                    <Link href="/auth">Login Now</Link>
+                <div className="flex flex-col items-center gap-3 py-4">
+                  <Button asChild className="bg-primary hover:bg-primary/90 w-full text-white">
+                    <Link href="/auth">Login to Account</Link>
                   </Button>
                 </div>
               )}
@@ -161,31 +172,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             children
           ) : (
             <Card className="flex h-[450px] flex-col items-center justify-center border-none p-8 text-center shadow-none ring-0">
-              <div className="bg-primary/10 mb-6 flex h-20 w-20 items-center justify-center rounded-full">
-                <Shield className="text-primary h-10 w-10" />
+              <div className="bg-primary/10 mb-6 flex h-16 w-16 items-center justify-center rounded-full">
+                <Shield className="text-primary h-8 w-8" />
               </div>
-              <h2 className="mb-2 text-2xl font-bold tracking-tight">Access Restricted</h2>
-              <p className="text-muted-foreground mb-8 max-w-md">
-                Please log in to your account to access your personal dashboard, orders, and
-                settings.
+              <h1 className="mb-4 text-3xl font-bold tracking-tight">Dashboard Access</h1>
+              <p className="text-muted-foreground mb-8 max-w-md text-lg">
+                Please sign in to view your orders, manage your profile, and access exclusive
+                features.
               </p>
-              <div className="flex flex-col gap-4 sm:flex-row">
-                <Button
-                  asChild
-                  size="lg"
-                  className="px-8 transition-transform hover:scale-105 active:scale-95"
-                >
-                  <Link href="/auth">Sign In</Link>
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="lg"
-                  className="hover:bg-primary/5 px-8 transition-all"
-                >
-                  <Link href="/">Back to Home</Link>
-                </Button>
-              </div>
+              <Button
+                asChild
+                size="lg"
+                className="bg-primary hover:bg-primary/90 px-12 text-lg text-white transition-all hover:scale-105"
+              >
+                <Link href="/auth">Sign In Now</Link>
+              </Button>
             </Card>
           )}
         </main>

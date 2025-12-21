@@ -26,6 +26,7 @@ import {
   MenuTrigger,
 } from '@/components/ui/menu'
 import { useTheme } from 'next-themes'
+import { fetchClient } from '@/lib/api-config'
 
 export function UserMenu() {
   const { resolvedTheme, setTheme } = useTheme()
@@ -34,11 +35,28 @@ export function UserMenu() {
 
   useEffect(() => {
     setMounted(true)
-    const storedUser = localStorage.getItem('user')
-    const token = localStorage.getItem('token')
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser))
+    const loadUser = async () => {
+      const storedUser = localStorage.getItem('user')
+      const token = localStorage.getItem('token')
+
+      if (token) {
+        if (storedUser) {
+          setUser(JSON.parse(storedUser))
+        }
+
+        try {
+          const response = await fetchClient('/v1/auth/profile')
+          const userData = response?.data || response
+          if (userData) {
+            setUser(userData)
+            localStorage.setItem('user', JSON.stringify(userData))
+          }
+        } catch (error) {
+          console.error('Failed to load profile in menu', error)
+        }
+      }
     }
+    loadUser()
   }, [])
 
   const handleLogout = () => {
@@ -52,7 +70,12 @@ export function UserMenu() {
 
   if (!user) {
     return (
-      <Button asChild variant="default" size="sm">
+      <Button
+        asChild
+        variant="default"
+        size="sm"
+        className="bg-primary hover:bg-primary/90 text-white"
+      >
         <a href="/auth">Login</a>
       </Button>
     )
