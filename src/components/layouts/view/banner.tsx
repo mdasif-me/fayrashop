@@ -107,8 +107,7 @@ export default function Banner() {
             {showVerificationMessage ? (
               <Button
                 size="sm"
-                variant="outline"
-                className="text-sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 border-none text-sm"
                 onClick={handleResendVerification}
                 disabled={isResending}
               >
@@ -119,7 +118,7 @@ export default function Banner() {
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="bg-primary mr-2 h-4 w-4 text-white" />
+                    <RefreshCw className="mr-2 h-4 w-4" />
                     Resend Email
                   </>
                 )}
