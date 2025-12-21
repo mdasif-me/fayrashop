@@ -1,4 +1,4 @@
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
+export const API_BASE_URL = '/api/proxy'
 
 function getStoredToken() {
   if (typeof window === 'undefined') return null
@@ -19,7 +19,6 @@ async function refreshAuthToken() {
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include',
   })
 
   let data
@@ -53,6 +52,7 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
     )
   }
   const url = `${API_BASE_URL}${endpoint}`
+  console.log(`[API] Requesting: ${url}`)
 
   const token = getStoredToken()
 
@@ -65,7 +65,6 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   const response = await fetch(url, {
     ...options,
     headers,
-    credentials: 'include',
   })
 
   let data

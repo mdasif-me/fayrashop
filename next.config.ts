@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
     domains: ['placehold.co', 'images.unsplash.com'],
     remotePatterns: [],
   },
+
+  async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '') || ''
+    return [
+      {
+        source: '/api/proxy/:path*',
+        destination: `${apiUrl}/:path*`,
+      },
+    ]
+  },
 }
 
 export default nextConfig
