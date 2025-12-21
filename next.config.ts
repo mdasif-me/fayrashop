@@ -17,11 +17,12 @@ const nextConfig: NextConfig = {
   },
 
   async rewrites() {
-    if (!process.env.NEXT_PUBLIC_API_URL) return []
+    const apiUrl = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/+$/, '')
+    if (!apiUrl) return []
     return [
       {
         source: '/api/proxy/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`,
+        destination: `${apiUrl}/:path*`,
       },
     ]
   },

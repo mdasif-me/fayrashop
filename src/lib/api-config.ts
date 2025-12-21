@@ -1,5 +1,6 @@
-export const API_BASE_URL =
-  typeof window === 'undefined' ? process.env.NEXT_PUBLIC_API_URL : '/api/proxy'
+const SERVER_API_URL = (process.env.API_URL || process.env.NEXT_PUBLIC_API_URL)?.replace(/\/+$/, '')
+
+export const API_BASE_URL = typeof window === 'undefined' ? SERVER_API_URL : '/api/proxy'
 
 function getStoredToken() {
   if (typeof window === 'undefined') return null
@@ -48,6 +49,11 @@ async function refreshAuthToken() {
 }
 
 export async function fetchClient(endpoint: string, options: RequestInit = {}, _retried = false) {
+  if (typeof window === 'undefined' && !API_BASE_URL) {
+    throw new Error(
+      'Missing API base URL. Set API_URL (recommended) or NEXT_PUBLIC_API_URL in the environment.'
+    )
+  }
   const url = `${API_BASE_URL}${endpoint}`
 
   const token = getStoredToken()
