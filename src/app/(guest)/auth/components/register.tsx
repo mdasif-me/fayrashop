@@ -51,8 +51,15 @@ const Register = () => {
       router.push('/?registered=true')
     } catch (error: any) {
       console.error('Registration error:', error)
+
+      const message = String(error?.message || '')
+      if (message.toLowerCase().includes('user already exists')) {
+        router.push('/?registered=true')
+        return
+      }
+
       setError('root', {
-        message: error.message || 'Something went wrong',
+        message: message || 'Something went wrong',
       })
     }
   }
