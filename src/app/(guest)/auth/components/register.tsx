@@ -46,23 +46,11 @@ const Register = () => {
         body: JSON.stringify(payload),
       })
 
-      const token = result?.data?.tokens?.access_token || result?.tokens?.access_token
-      const userData = result?.data?.user || result?.user
-
-      if (token && userData) {
-        login(token, userData)
-        toast({
-          title: 'Registration Successful',
-          description: 'Welcome to FayraShop!',
-        })
-        router.push('/')
-      } else {
-        toast({
-          title: 'Success',
-          description: 'Please check your email to verify your account.',
-        })
-        router.push('/auth?mode=login')
-      }
+      toast({
+        title: 'Registration Successful',
+        description: 'Please check your email to verify your account before logging in.',
+      })
+      router.push('/auth?mode=login')
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error || '')
       if (message.toLowerCase().includes('user already exists')) {
