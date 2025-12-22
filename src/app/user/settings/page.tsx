@@ -105,40 +105,6 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-red-100 bg-red-50/30 dark:border-red-900/30 dark:bg-red-950/10">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl font-bold text-red-600 dark:text-red-400">
-            <AlertTriangle className="h-5 w-5" /> Danger Zone
-          </CardTitle>
-          <CardDescription>Irreversible actions for your account.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div className="space-y-1">
-              <label className="text-base font-semibold text-red-700 dark:text-red-300">
-                Delete Account
-              </label>
-              <p className="text-sm text-red-600/70 dark:text-red-400/70">
-                Once you delete your account, all your data will be permanently removed.
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              className="px-6"
-              onClick={handleDeleteAccount}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="mr-2 h-4 w-4" />
-              )}
-              Delete My Account
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       <div className="flex justify-end gap-3 pt-6">
         <Button variant="outline">Back to Dashboard</Button>
         <Button className="px-8">Save Changes</Button>
