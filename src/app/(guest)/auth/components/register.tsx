@@ -61,7 +61,7 @@ const Register = () => {
           title: 'Success',
           description: 'Please check your email to verify your account.',
         })
-        router.push('/auth')
+        router.push('/auth?mode=login')
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error || '')
