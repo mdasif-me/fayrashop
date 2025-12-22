@@ -214,7 +214,7 @@ export default function ProfilePage() {
             <div>
               <h3 className="font-medium">Profile Picture</h3>
               <p className="text-muted-foreground text-sm font-light">
-                Click the image to upload a new one. PNG, JPG up to 500kb.
+                Click the image to upload a new one. PNG, JPG up to 500KB.
               </p>
             </div>
           </div>
