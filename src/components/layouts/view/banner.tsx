@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { TicketPercent, XIcon, Mail, RefreshCw } from 'lucide-react'
 
@@ -29,7 +30,7 @@ export default function Banner() {
 
   // Show verification message if user status is PENDING
   const showVerificationMessage = user?.status === 'PENDING'
-  const userEmail = user?.email || ''
+  const userEmail = user?.email || searchParams.get('email') || ''
 
   const handleResendVerification = async () => {
     setIsResending(true)
@@ -64,7 +65,7 @@ export default function Banner() {
             className="bg-primary/15 hidden size-9 shrink-0 items-center justify-center rounded-full max-md:mt-0.5 md:flex"
             aria-hidden="true"
           >
-            {showVerificationMessage ? (
+            {showVerificationMessage || isRegistrationSuccess ? (
               <Mail className="opacity-80" size={16} />
             ) : (
               <TicketPercent className="opacity-80" size={16} />
@@ -82,9 +83,10 @@ export default function Banner() {
                 </>
               ) : isRegistrationSuccess ? (
                 <>
-                  <p className="text-sm font-medium">Registration Complete!</p>
+                  <p className="text-sm font-medium">Verification Required!</p>
                   <p className="text-muted-foreground text-sm">
-                    Please check your email to verify your account.
+                    We&apos;ve sent a verification link to {userEmail}. Please verify your account
+                    before logging in.
                   </p>
                 </>
               ) : (
@@ -114,6 +116,10 @@ export default function Banner() {
                     Resend Email
                   </>
                 )}
+              </Button>
+            ) : isRegistrationSuccess ? (
+              <Button size="sm" asChild className="text-sm">
+                <Link href="/auth?mode=login">Go to Login</Link>
               </Button>
             ) : !isRegistrationSuccess ? (
               <div className="flex gap-3 max-md:flex-wrap">
