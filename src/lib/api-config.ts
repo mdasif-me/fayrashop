@@ -1,4 +1,7 @@
-export const API_BASE_URL = '/api/proxy'
+export const API_BASE_URL =
+  typeof window !== 'undefined'
+    ? '/api/proxy'
+    : process.env.NEXT_PUBLIC_API_URL || 'https://fayrashop-ssr.vercel.app'
 
 function getStoredToken() {
   if (typeof window === 'undefined') return null
@@ -8,7 +11,7 @@ function getStoredToken() {
 function setStoredToken(token: string) {
   if (typeof window === 'undefined') return
   localStorage.setItem('token', token)
-  document.cookie = `token=${token}; path=/; max-age=86400`
+  document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
 }
 
 async function refreshAuthToken() {
@@ -28,15 +31,12 @@ async function refreshAuthToken() {
     data = null
   }
 
-  console.log(`[API] POST /v1/auth/refresh - Status: ${response.status}`, data)
-
   if (!response.ok) {
     throw new Error(
       data?.message || data?.error || `API Error: ${response.status} ${response.statusText}`
     )
   }
 
-  // Handle the actual API response structure
   const token = data?.data?.access_token || data?.access_token || data?.token || data?.data?.token
 
   if (!token) {
@@ -48,19 +48,15 @@ async function refreshAuthToken() {
 }
 
 export async function fetchClient(endpoint: string, options: RequestInit = {}, _retried = false) {
-  if (!API_BASE_URL) {
-    throw new Error(
-      'Missing API base URL. Set API_URL (recommended) or NEXT_PUBLIC_API_URL in the environment.'
-    )
-  }
   const url = `${API_BASE_URL}${endpoint}`
-  console.log(`[API] Requesting: ${url}`)
-
   const token = getStoredToken()
+
+  // Don't send Authorization header for login or register endpoints
+  const isAuthRoute = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
+    ...(token && !isAuthRoute && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   }
 
@@ -80,12 +76,17 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   console.log(`[API] ${method} ${endpoint} - Status: ${response.status}`, data)
 
   if (!response.ok) {
-    if (!_retried && (response.status === 401 || response.status === 403)) {
+    if (!_retried && (response.status === 401 || response.status === 403) && !isAuthRoute) {
       try {
         await refreshAuthToken()
         return fetchClient(endpoint, options, true)
       } catch (refreshError) {
-        // fall through to throw original error
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+        }
+        throw refreshError
       }
     }
 
@@ -95,4 +96,26 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   }
 
   return data
+}
+
+export async function logoutClient() {
+  const token = getStoredToken()
+  try {
+    if (token) {
+      // The user specifically requested /auth/logout?token=...
+      // We'll try it via our proxy which adds /v1 if needed, or hit the absolute path
+      await fetch(`${API_BASE_URL}/v1/auth/logout?token=${token}`, {
+        method: 'GET',
+      })
+    }
+  } catch (error) {
+    console.error('API Logout failed', error)
+  } finally {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+      window.location.href = '/'
+    }
+  }
 }

@@ -14,8 +14,10 @@ import { IconArrowRight } from '@intentui/icons'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { fetchClient } from '@/lib/api-config'
+import { useAuth } from '@/providers/auth-provider'
 
 const Register = () => {
+  const { login } = useAuth()
   const {
     handleSubmit,
     control,
@@ -37,8 +39,6 @@ const Register = () => {
 
   const onSubmit = async (data: RegisterType) => {
     try {
-      // Create a copy of data to avoid mutating the form state
-      // Remove confirmPassword as backend likely doesn't expect it
       const { confirmPassword, ...payload } = data
 
       const result = await fetchClient('/v1/auth/register', {
@@ -46,26 +46,23 @@ const Register = () => {
         body: JSON.stringify(payload),
       })
 
-      console.log('Registration Response:', result)
+      const token = result?.data?.tokens?.access_token || result?.tokens?.access_token
+      const userData = result?.data?.user || result?.user
 
-      // Store user data and token for verification banner
-      if (result?.data?.user) {
-        localStorage.setItem('user', JSON.stringify(result.data.user))
+      if (token && userData) {
+        login(token, userData)
+        toast({
+          title: 'Registration Successful',
+          description: 'Welcome to FayraShop!',
+        })
+        router.push('/')
+      } else {
+        toast({
+          title: 'Success',
+          description: 'Please check your email to verify your account.',
+        })
+        router.push('/auth')
       }
-
-      if (result?.data?.tokens?.access_token) {
-        localStorage.setItem('token', result.data.tokens.access_token)
-        document.cookie = `token=${result.data.tokens.access_token}; path=/; max-age=86400`
-      }
-
-      toast({
-        title: 'Registration Successful',
-        description: 'Please check your email to verify your account.',
-      })
-
-      // Redirect to home page (not with ?registered=true)
-      router.push('/')
-      router.refresh()
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error || '')
       if (message.toLowerCase().includes('user already exists')) {
@@ -73,12 +70,8 @@ const Register = () => {
         return
       }
 
-      console.error('Registration error:', error)
-
-      const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
-
       setError('root', {
-        message: message || errorMessage,
+        message: message || 'Something went wrong',
       })
     }
   }

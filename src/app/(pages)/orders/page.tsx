@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -86,6 +86,30 @@ const statusConfig = {
 
 export default function OrdersPage() {
   const [selectedFilter, setSelectedFilter] = useState<string>('all')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    const token = localStorage.getItem('token')
+    setIsAuthenticated(!!token)
+  }, [])
+
+  if (!mounted) return null
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="mb-4 text-4xl font-bold">My Orders</h1>
+          <p className="mb-8 text-gray-600">Please log in to view your orders</p>
+          <Button asChild className="bg-primary">
+            <a href="/auth">Login</a>
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const filteredOrders =
     selectedFilter === 'all' ? orders : orders.filter((order) => order.status === selectedFilter)
@@ -159,7 +183,7 @@ export default function OrdersPage() {
                   <div className="mb-6 space-y-4">
                     {order.items.map((item) => (
                       <div key={item.id} className="flex items-center gap-4">
-                        <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg">
+                        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg">
                           <Image src={item.image} alt={item.name} fill className="object-cover" />
                         </div>
                         <div className="flex-1">

@@ -8,63 +8,30 @@ import { Avatar } from '@/components/ui/avatar'
 import { Camera, Loader2 } from 'lucide-react'
 import { fetchClient } from '@/lib/api-config'
 import { useToast } from '@/hooks/use-toast'
-
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  phone?: string
-  image?: string
-}
+import { useAuth } from '@/providers/auth-provider'
+import { cn } from '@/lib/utils'
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, refreshProfile } = useAuth()
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
   })
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
+  const getUserId = () => user?.id || user?._id
+
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser)
-          setUser(parsed)
-          setFormData({
-            name: parsed.name || '',
-            phone: parsed.phone || '',
-          })
-        }
-
-        const response = await fetchClient('/v1/auth/profile')
-        let userData = null
-        if (response?.data) {
-          userData = response.data
-        } else if (response) {
-          userData = response
-        }
-
-        if (userData) {
-          setUser(userData)
-          localStorage.setItem('user', JSON.stringify(userData))
-          setFormData({
-            name: userData.name || '',
-            phone: userData.phone || '',
-          })
-        }
-      } catch (error) {
-        console.error('Failed to load profile', error)
-      } finally {
-        setLoading(false)
-      }
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        phone: user.phone || '',
+      })
     }
-
-    loadProfile()
-  }, [])
+  }, [user])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -74,35 +41,80 @@ export default function ProfilePage() {
     }))
   }
 
+  const handleImageClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    setUploading(true)
+    toast({
+      title: 'Uploading...',
+      description: 'Please wait while we upload your profile picture.',
+    })
+
+    try {
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64String = reader.result as string
+        try {
+          await fetchClient(`/v1/users/${user.id || user._id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ image: base64String }),
+          })
+          await refreshProfile()
+          toast({
+            title: 'Success',
+            description: 'Profile picture updated successfully.',
+          })
+        } catch (err: any) {
+          toast({
+            title: 'Upload Failed',
+            description: err.message || 'Failed to update image on server.',
+            variant: 'destructive',
+          })
+        }
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Upload failed', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to upload image.',
+        variant: 'destructive',
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const handleSave = async () => {
-    if (!user) return
+    const userId = getUserId()
+    if (!userId) {
+      toast({ title: 'Error', description: 'User ID not found.', variant: 'destructive' })
+      return
+    }
 
     setSaving(true)
     try {
-      const response = await fetchClient(`/v1/users/${user.id}`, {
+      await fetchClient(`/v1/users/${userId}`, {
         method: 'PATCH',
         body: JSON.stringify(formData),
       })
 
-      // Update local state with new data
-      const updatedUser = { ...user, ...formData }
-      if (response?.data) {
-        // If API returns updated object, use it
-        Object.assign(updatedUser, response.data)
-      }
-
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+      await refreshProfile()
 
       toast({
         title: 'Profile updated',
         description: 'Your profile has been updated successfully.',
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update profile', error)
       toast({
         title: 'Error',
-        description: 'Failed to update profile. Please try again.',
+        description: error.message || 'Failed to update profile. Please try again.',
         variant: 'destructive',
       })
     } finally {
@@ -110,8 +122,12 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading && !user) {
-    return <div>Loading profile...</div>
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -128,20 +144,36 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center gap-6">
-            <div className="relative">
+            <div className="group relative cursor-pointer" onClick={handleImageClick}>
               <Avatar
                 src={user?.image || ''}
                 alt="Profile picture"
                 size="xl"
-                className="h-24 w-24"
+                className={cn(
+                  'h-24 w-24 transition-opacity group-hover:opacity-80',
+                  uploading && 'opacity-50'
+                )}
               />
-              <button className="bg-primary hover:bg-primary/90 absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg">
-                <Camera className="h-4 w-4" />
-              </button>
+              <div className="bg-primary absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg transition-transform group-hover:scale-110">
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
             </div>
             <div>
               <h3 className="font-medium">Profile Picture</h3>
-              <p className="text-muted-foreground text-sm">PNG, JPG up to 10MB</p>
+              <p className="text-muted-foreground text-sm font-light">
+                Click the image to upload a new one. PNG, JPG up to 10MB.
+              </p>
             </div>
           </div>
 
@@ -155,9 +187,6 @@ export default function ProfilePage() {
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>
               <input
@@ -168,6 +197,9 @@ export default function ProfilePage() {
                 className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm opacity-60 file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="phone">Phone number</Label>
               <input

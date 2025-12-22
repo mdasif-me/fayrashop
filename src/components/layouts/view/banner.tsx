@@ -8,36 +8,28 @@ import { Button } from '@/components/ui/button'
 import Timer from '../../ui/timer'
 import { fetchClient } from '@/lib/api-config'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/providers/auth-provider'
 
 export default function Banner() {
+  const { user, loading } = useAuth()
   const [isVisible, setIsVisible] = useState(true)
-  const [userStatus, setUserStatus] = useState<string | null>(null)
-  const [userEmail, setUserEmail] = useState<string>('')
+  const [mounted, setMounted] = useState(false)
   const [isResending, setIsResending] = useState(false)
 
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const { toast } = useToast()
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const isHome = pathname === '/'
   const isRegistrationSuccess = isHome && searchParams.get('registered') === 'true'
 
-  useEffect(() => {
-    // Check if user is logged in and has PENDING status
-    const userStr = localStorage.getItem('user')
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr)
-        setUserStatus(user.status)
-        setUserEmail(user.email)
-      } catch (error) {
-        console.error('Error parsing user data:', error)
-      }
-    }
-  }, [])
-
   // Show verification message if user status is PENDING
-  const showVerificationMessage = userStatus === 'PENDING'
+  const showVerificationMessage = user?.status === 'PENDING'
+  const userEmail = user?.email || ''
 
   const handleResendVerification = async () => {
     setIsResending(true)

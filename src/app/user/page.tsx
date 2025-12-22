@@ -1,54 +1,14 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Package, ShoppingBag, Heart, Clock } from 'lucide-react'
 import Link from 'next/link'
-import { fetchClient } from '@/lib/api-config'
-
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  role: string
-  status: string
-  phone?: string
-  // Add other fields as needed
-}
+import { useAuth } from '@/providers/auth-provider'
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        // Try to get from local storage first for immediate display
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
-          setUser(JSON.parse(storedUser))
-        }
-
-        // Fetch fresh data
-        const response = await fetchClient('/v1/auth/profile')
-        if (response?.data) {
-          setUser(response.data)
-          localStorage.setItem('user', JSON.stringify(response.data))
-        } else if (response) {
-          // fallback if data is directly in response
-          setUser(response)
-          localStorage.setItem('user', JSON.stringify(response))
-        }
-      } catch (error) {
-        console.error('Failed to load profile', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    loadProfile()
-  }, [])
+  const { user } = useAuth()
 
   return (
     <div className="space-y-6">
@@ -60,7 +20,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
             <ShoppingBag className="text-muted-foreground h-4 w-4" />
@@ -70,7 +30,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground text-xs">+2 from last month</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Processing</CardTitle>
             <Package className="text-muted-foreground h-4 w-4" />
@@ -80,7 +40,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground text-xs">Arriving soon</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Wishlist</CardTitle>
             <Heart className="text-muted-foreground h-4 w-4" />
@@ -90,7 +50,7 @@ export default function DashboardPage() {
             <p className="text-muted-foreground text-xs">Items saved</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="transition-shadow hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
             <Clock className="text-muted-foreground h-4 w-4" />
@@ -103,7 +63,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card className="col-span-4 shadow-sm">
           <CardHeader>
             <CardTitle>Recent Orders</CardTitle>
             <CardDescription>You made 2 orders this month.</CardDescription>
@@ -167,30 +127,39 @@ export default function DashboardPage() {
             </Link>
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card className="col-span-3 shadow-sm">
           <CardHeader>
-            <CardTitle>My Address</CardTitle>
-            <CardDescription>Your default shipping address.</CardDescription>
+            <CardTitle>Contact Information</CardTitle>
+            <CardDescription>Your registered details.</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-lg border p-4">
-              <div className="mb-2 flex items-start justify-between">
-                <h4 className="font-semibold">Home</h4>
-                <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
-                  Default
-                </span>
+            <div className="bg-muted/20 rounded-lg border p-4">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="bg-primary/10 rounded-full p-2">
+                  <Package className="text-primary h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold">Personal Info</h4>
+                  <p className="text-muted-foreground text-xs">Managed in profile settings</p>
+                </div>
               </div>
-              <p className="text-muted-foreground mb-1 text-sm">{user?.name || 'User Name'}</p>
-              <p className="text-muted-foreground mb-1 text-sm">
-                {user?.email || 'user@example.com'}
-              </p>
-              <p className="text-muted-foreground mb-1 text-sm">
-                {user?.phone || 'No phone number'}
-              </p>
-              {/* Address fields would come from user profile if available, sticking to basic info for now */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Name:</span>
+                  <span className="font-medium">{user?.name || 'Not provided'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Email:</span>
+                  <span className="ml-2 truncate font-medium">{user?.email || 'Not provided'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Phone:</span>
+                  <span className="font-medium">{user?.phone || 'Not provided'}</span>
+                </div>
+              </div>
             </div>
-            <Button variant="outline" className="mt-4 w-full">
-              Manage Addresses
+            <Button asChild variant="outline" className="mt-4 w-full">
+              <Link href="/user/profile">Edit Profile</Link>
             </Button>
           </CardContent>
         </Card>

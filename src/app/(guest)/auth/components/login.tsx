@@ -11,8 +11,10 @@ import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { fetchClient } from '@/lib/api-config'
+import { useAuth } from '@/providers/auth-provider'
 
 const Login = () => {
+  const { login } = useAuth()
   const {
     handleSubmit,
     control,
@@ -35,33 +37,27 @@ const Login = () => {
         body: JSON.stringify(data),
       })
 
-      console.log('Login API Response:', result)
-
       const token =
+        result?.data?.tokens?.access_token ||
         result?.tokens?.access_token ||
-        result?.token ||
         result?.data?.token ||
-        result?.accessToken ||
+        result?.token ||
         result?.data?.accessToken ||
-        result?.access_token ||
-        result?.data?.access_token
+        result?.accessToken
 
-      if (token) {
-        localStorage.setItem('token', token)
-        document.cookie = `token=${token}; path=/; max-age=86400`
+      const userData = result?.data?.user || result?.user
+
+      if (token && userData) {
+        login(token, userData)
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome back!',
+        })
+        router.push('/user')
+      } else {
+        console.error('Login parsing failed. Result:', result)
+        throw new Error('Invalid response from server: Missing token or user data')
       }
-
-      if (result?.user || result?.data?.user) {
-        localStorage.setItem('user', JSON.stringify(result?.user || result?.data?.user))
-      }
-
-      toast({
-        title: 'Login Successful',
-        description: 'Welcome back!',
-      })
-
-      router.push('/')
-      router.refresh()
     } catch (error: unknown) {
       setError('root', {
         message: error instanceof Error ? error.message : 'Invalid email or password',

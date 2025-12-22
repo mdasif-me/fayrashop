@@ -1,50 +1,96 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/field'
-import { Shield, Key, Smartphone, History, AlertTriangle } from 'lucide-react'
+import { Shield, Key, Smartphone, Loader2, AlertTriangle, Trash2 } from 'lucide-react'
 import { fetchClient } from '@/lib/api-config'
-import { useRouter } from 'next/navigation'
+import { useAuth } from '@/providers/auth-provider'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SecurityPage() {
-  const router = useRouter()
-  const [userId, setUserId] = useState<string | null>(null)
+  const { user, logout } = useAuth()
+  const { toast } = useToast()
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
 
-  useEffect(() => {
-    const userStr = localStorage.getItem('user')
-    if (userStr) {
-      const user = JSON.parse(userStr)
-      if (user.id) setUserId(user.id)
-    }
-  }, [])
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target
+    setPasswordData((prev) => ({ ...prev, [id]: value }))
+  }
 
-  const handleDeleteAccount = async () => {
-    if (!userId) {
-      alert('User ID not found. Please refresh or log in again.')
+  const updatePassword = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: 'Validation Error',
+        description: 'Passwords do not match.',
+        variant: 'destructive',
+      })
       return
     }
 
+    setIsUpdatingPassword(true)
+    try {
+      await fetchClient('/v1/users/change-password', {
+        method: 'POST',
+        body: JSON.stringify({
+          oldPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      })
+
+      toast({
+        title: 'Success',
+        description: 'Your password has been updated successfully.',
+      })
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update password.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUpdatingPassword(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    const userId = user?.id || user?._id
+    if (!userId) return
+
     if (
-      window.confirm(
+      !confirm(
         'Are you sure you want to permanently delete your account? This action cannot be undone.'
       )
     ) {
-      try {
-        await fetchClient(`/v1/users/${userId}`, {
-          method: 'DELETE',
-        })
-        // Clear session
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-        router.push('/')
-        alert('Account deleted successfully.')
-      } catch (error) {
-        console.error('Failed to delete account', error)
-        alert('Failed to delete account. Please try again.')
-      }
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await fetchClient(`/v1/users/${userId}`, {
+        method: 'DELETE',
+      })
+      toast({
+        title: 'Account Deleted',
+        description: 'Your account has been removed successfully.',
+      })
+      await logout()
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete account.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -57,8 +103,8 @@ export default function SecurityPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" /> Change Password
+          <CardTitle className="flex items-center gap-2 text-xl font-bold">
+            <Key className="text-primary h-5 w-5" /> Change Password
           </CardTitle>
           <CardDescription>
             Ensure your account is secure by using a strong password.
@@ -66,39 +112,48 @@ export default function SecurityPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
-            <Label htmlFor="current-password">Current Password</Label>
+            <Label htmlFor="currentPassword">Current Password</Label>
             <input
-              id="current-password"
+              id="currentPassword"
               type="password"
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              value={passwordData.currentPassword}
+              onChange={handlePasswordChange}
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="new-password">New Password</Label>
+            <Label htmlFor="newPassword">New Password</Label>
             <input
-              id="new-password"
+              id="newPassword"
               type="password"
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              value={passwordData.newPassword}
+              onChange={handlePasswordChange}
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="confirm-password">Confirm New Password</Label>
+            <Label htmlFor="confirmPassword">Confirm New Password</Label>
             <input
-              id="confirm-password"
+              id="confirmPassword"
               type="password"
-              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              value={passwordData.confirmPassword}
+              onChange={handlePasswordChange}
+              className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
             />
           </div>
           <div className="mt-4 flex justify-end">
-            <Button>Update Password</Button>
+            <Button onClick={updatePassword} disabled={isUpdatingPassword}>
+              {isUpdatingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Update Password
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Smartphone className="h-5 w-5" /> Two-Factor Authentication
+          <CardTitle className="flex items-center gap-2 text-xl font-bold">
+            <Smartphone className="text-primary h-5 w-5" /> Two-Factor Authentication
           </CardTitle>
           <CardDescription>Add an extra layer of security to your account.</CardDescription>
         </CardHeader>
@@ -106,7 +161,7 @@ export default function SecurityPage() {
           <div className="space-y-1">
             <p className="font-medium">
               Two-factor authentication is currently{' '}
-              <span className="font-bold text-red-500">OFF</span>
+              <span className="font-extrabold text-red-500">OFF</span>
             </p>
             <p className="text-muted-foreground text-sm">
               We recommend enabling 2FA for better security.
@@ -116,24 +171,35 @@ export default function SecurityPage() {
         </CardContent>
       </Card>
 
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/20">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600 dark:text-red-400" />
-          <div>
-            <h4 className="font-medium text-red-900 dark:text-red-300">Delete Account</h4>
-            <p className="mt-1 text-sm text-red-700 dark:text-red-400">
-              Permanently delete your account and all of your content. This action cannot be undone.
-            </p>
-            <Button
-              variant="destructive"
-              className="mt-4 bg-red-600 text-white hover:bg-red-700"
+      <Card className="border-red-100 bg-red-50/30 dark:border-red-900/30 dark:bg-red-950/10">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2 text-xl font-bold text-red-600 dark:text-red-400">
+                <AlertTriangle className="h-5 w-5" /> Danger Zone
+              </CardTitle>
+              <CardDescription>Irreversible actions for your account.</CardDescription>
+            </div>
+            <button
               onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
             >
+              {isDeleting ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Trash2 className="h-3 w-3" />
+              )}
               Delete Account
-            </Button>
+            </button>
           </div>
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-red-600/70 dark:text-red-400/70">
+            Permanently delete your account and all of your content. This action cannot be undone.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }
