@@ -13,6 +13,8 @@ import { useRouter } from 'next/navigation'
 import { fetchClient } from '@/lib/api-config'
 import { useAuth } from '@/providers/auth-provider'
 
+import { isUserPending, isUserVerified } from '@/lib/auth-utils'
+
 const Login = () => {
   const { login, refreshProfile } = useAuth()
   const {
