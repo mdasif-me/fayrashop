@@ -11,8 +11,10 @@ import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
 import { fetchClient } from '@/lib/api-config'
+import { useAuth } from '@/providers/auth-provider'
 
 const Login = () => {
+  const { login } = useAuth()
   const {
     handleSubmit,
     control,
@@ -35,8 +37,6 @@ const Login = () => {
         body: JSON.stringify(data),
       })
 
-      console.log('Login API Response:', result)
-
       const token =
         result?.tokens?.access_token ||
         result?.token ||
@@ -46,22 +46,18 @@ const Login = () => {
         result?.access_token ||
         result?.data?.access_token
 
-      if (token) {
-        localStorage.setItem('token', token)
-        document.cookie = `token=${token}; path=/; max-age=86400`
+      const userData = result?.user || result?.data?.user
+
+      if (token && userData) {
+        login(token, userData)
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome back!',
+        })
+        router.push('/')
+      } else {
+        throw new Error('Invalid response from server')
       }
-
-      if (result?.user || result?.data?.user) {
-        localStorage.setItem('user', JSON.stringify(result?.user || result?.data?.user))
-      }
-
-      toast({
-        title: 'Login Successful',
-        description: 'Welcome back!',
-      })
-
-      router.push('/')
-      router.refresh()
     } catch (error: unknown) {
       setError('root', {
         message: error instanceof Error ? error.message : 'Invalid email or password',

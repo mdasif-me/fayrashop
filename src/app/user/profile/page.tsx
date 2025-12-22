@@ -9,15 +9,18 @@ import { Camera, Loader2 } from 'lucide-react'
 import { fetchClient } from '@/lib/api-config'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/providers/auth-provider'
+import { cn } from '@/lib/utils'
 
 export default function ProfilePage() {
   const { user, refreshProfile } = useAuth()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
   })
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -35,6 +38,70 @@ export default function ProfilePage() {
       ...prev,
       [id]: value,
     }))
+  }
+
+  const handleImageClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !user) return
+
+    // Show immediate feedback
+    setUploading(true)
+    const toastId = toast({
+      title: 'Uploading...',
+      description: 'Please wait while we upload your profile picture.',
+    })
+
+    try {
+      // 1. In a real scenario, we'd upload to an S3/Cloudinary endpoint
+      // For now, we'll simulate the upload or use a data URL for immediate show
+      // if the backend supports direct PATCH with image data or if we have an upload API.
+
+      // Mocking a file upload to get a URL (if your backend has an upload endpoint, use it here)
+      // Since I don't see a confirmed upload endpoint working, I'll update the user data
+      // with a placeholder or the actual file if the backend supports it.
+
+      // Let's assume the PATCH endpoint can handle an 'image' field update.
+      // If you have a separate file upload API, call it here first.
+
+      // Converting to base64 for demonstration if no upload API exists
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        const base64String = reader.result as string
+        try {
+          await fetchClient(`/v1/users/${user.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ image: base64String }),
+          })
+          await refreshProfile()
+          toast({
+            title: 'Success',
+            description: 'Profile picture updated successfully.',
+          })
+        } catch (err: any) {
+          toast({
+            title: 'Upload Failed',
+            description: err.message || 'Failed to update image on server.',
+            variant: 'destructive',
+          })
+        } finally {
+          setUploading(true)
+        }
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Upload failed', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to upload image.',
+        variant: 'destructive',
+      })
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleSave = async () => {
@@ -83,20 +150,36 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center gap-6">
-            <div className="relative">
+            <div className="group relative cursor-pointer" onClick={handleImageClick}>
               <Avatar
                 src={user?.image || ''}
                 alt="Profile picture"
                 size="xl"
-                className="h-24 w-24"
+                className={cn(
+                  'h-24 w-24 transition-opacity group-hover:opacity-80',
+                  uploading && 'opacity-50'
+                )}
               />
-              <button className="bg-primary hover:bg-primary/90 absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg">
-                <Camera className="h-4 w-4" />
-              </button>
+              <div className="bg-primary hover:bg-primary/90 absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg transition-transform group-hover:scale-110">
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+              </div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleImageUpload}
+              />
             </div>
             <div>
               <h3 className="font-medium">Profile Picture</h3>
-              <p className="text-muted-foreground text-sm">PNG, JPG up to 10MB</p>
+              <p className="text-muted-foreground text-sm font-light">
+                Click the image to upload a new one. PNG, JPG up to 10MB.
+              </p>
             </div>
           </div>
 

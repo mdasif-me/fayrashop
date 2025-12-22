@@ -85,12 +85,13 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
         await refreshAuthToken()
         return fetchClient(endpoint, options, true)
       } catch (refreshError) {
-        // Clear local storage on refresh failure if unauthorized
+        // Clear session on refresh failure
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token')
           localStorage.removeItem('user')
           document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
         }
+        throw refreshError
       }
     }
 

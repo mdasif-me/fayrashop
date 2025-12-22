@@ -39,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await fetchClient('/v1/auth/profile')
       const userData = response?.data || response
       if (userData) {
+        console.log('User profile refreshed successfully:', userData)
         setUser(userData)
         localStorage.setItem('user', JSON.stringify(userData))
       }
@@ -53,11 +54,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const initAuth = async () => {
-      const storedUser = localStorage.getItem('user')
-      if (storedUser) {
-        setUser(JSON.parse(storedUser))
+      try {
+        const storedUser = localStorage.getItem('user')
+        const token = localStorage.getItem('token')
+
+        if (storedUser && token) {
+          console.log('Initializing auth from localStorage')
+          setUser(JSON.parse(storedUser))
+        }
+
+        if (token) {
+          await refreshProfile()
+        } else {
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Auth initialization failed', error)
+        setLoading(false)
       }
-      await refreshProfile()
     }
     initAuth()
   }, [])
