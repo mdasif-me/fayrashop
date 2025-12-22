@@ -19,6 +19,8 @@ export default function ProfilePage() {
     name: '',
     phone: '',
   })
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
@@ -45,102 +47,13 @@ export default function ProfilePage() {
     fileInputRef.current?.click()
   }
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    const userId = getUserId()
-    if (!file || !userId) return
+    if (!file) return
 
-    setUploading(true)
-    toast({
-      title: 'Processing Image',
-      description: 'Optimizing image for server...',
-    })
-
-    try {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-
-      reader.onload = async (event) => {
-        const img = new Image()
-        img.src = event.target?.result as string
-
-        img.onload = async () => {
-          const canvas = document.createElement('canvas')
-          let width = img.width
-          let height = img.height
-
-          // Resize to 500px max (standard for avatars)
-          const MAX_SIZE = 500
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width
-              width = MAX_SIZE
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height
-              height = MAX_SIZE
-            }
-          }
-
-          canvas.width = width
-          canvas.height = height
-          const ctx = canvas.getContext('2d')
-          ctx?.drawImage(img, 0, 0, width, height)
-
-          // Get compressed Base64
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8)
-          // Extract just the base64 part (remove "data:image/jpeg;base64,")
-          const base64String = compressedDataUrl.split(',')[1]
-
-          try {
-            // Try sending raw base64 first (many backends expect this)
-            await fetchClient(`/v1/users/${userId}`, {
-              method: 'PATCH',
-              body: JSON.stringify({ image: base64String }),
-            })
-
-            await refreshProfile()
-            toast({
-              title: 'Success',
-              description: 'Profile picture updated successfully.',
-            })
-          } catch (err: any) {
-            console.error('Raw base64 upload failed, trying with prefix...', err)
-
-            try {
-              // Fallback: Try sending with the data URL prefix
-              await fetchClient(`/v1/users/${userId}`, {
-                method: 'PATCH',
-                body: JSON.stringify({ image: compressedDataUrl }),
-              })
-              await refreshProfile()
-              toast({
-                title: 'Success',
-                description: 'Profile picture updated successfully.',
-              })
-            } catch (fallbackErr: any) {
-              toast({
-                title: 'Server Error (500)',
-                description: 'The server is having trouble processing this image format.',
-                variant: 'destructive',
-              })
-            }
-          } finally {
-            if (fileInputRef.current) fileInputRef.current.value = ''
-            setUploading(false)
-          }
-        }
-      }
-
-      reader.onerror = () => {
-        toast({ title: 'Error', description: 'Failed to read image.', variant: 'destructive' })
-        setUploading(false)
-      }
-    } catch (error) {
-      console.error('Upload process failed:', error)
-      setUploading(false)
-    }
+    setSelectedFile(file)
+    const url = URL.createObjectURL(file)
+    setPreviewUrl(url)
   }
 
   const handleSave = async () => {
@@ -152,12 +65,86 @@ export default function ProfilePage() {
 
     setSaving(true)
     try {
-      await fetchClient(`/v1/users/${userId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(formData),
-      })
+      let finalImageUrl = user?.image
+
+      // 1. If there's a new file, upload it
+      if (selectedFile) {
+        setUploading(true)
+        const uploadFormData = new FormData()
+        uploadFormData.append('file', selectedFile)
+
+        const uploadResult = await fetchClient('/v1/assets/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        })
+
+        const assetId = uploadResult?.data?.asset?.id || uploadResult?.asset?.id
+        // Using optimized_url for better performance if available
+        finalImageUrl =
+          uploadResult?.data?.optimized_url ||
+          uploadResult?.optimized_url ||
+          uploadResult?.data?.asset?.secure_url ||
+          uploadResult?.asset?.secure_url
+
+        if (assetId) {
+          // 2. Associate the asset with the user
+          try {
+            const linkFormData = new FormData()
+            linkFormData.append('entity_id', userId)
+
+            await fetchClient(`/v1/assets/${assetId}`, {
+              method: 'PUT',
+              body: linkFormData,
+            })
+          } catch (linkError) {
+            console.warn('Asset association failed', linkError)
+          }
+        }
+        setUploading(false)
+      }
+
+      // 3. Prepare and clean the update payload
+      const updateData: any = {
+        name: formData.name.trim(),
+        image: finalImageUrl,
+      }
+
+      // Only include phone if it's not empty and different or if needed
+      // If the server is picky about phone format, we trim it
+      if (formData.phone) {
+        const cleanedPhone = formData.phone.trim()
+        if (cleanedPhone) {
+          updateData.phone = cleanedPhone
+        }
+      }
+
+      // 4. Update the user profile details
+      try {
+        await fetchClient(`/v1/users/${userId}`, {
+          method: 'PATCH',
+          body: JSON.stringify(updateData),
+        })
+      } catch (patchError: any) {
+        // If the error is specifically about the phone number, try updating without it
+        if (patchError.message?.toLowerCase().includes('phone')) {
+          console.warn('Phone update failed, trying without phone number...')
+          const { phone, ...dataWithoutPhone } = updateData
+          await fetchClient(`/v1/users/${userId}`, {
+            method: 'PATCH',
+            body: JSON.stringify(dataWithoutPhone),
+          })
+          toast({
+            title: 'Partial Update',
+            description: 'Profile updated, but phone number was rejected by server.',
+          })
+        } else {
+          throw patchError
+        }
+      }
 
       await refreshProfile()
+      setSelectedFile(null)
+      setPreviewUrl(null)
 
       toast({
         title: 'Profile updated',
@@ -165,6 +152,7 @@ export default function ProfilePage() {
       })
     } catch (error: any) {
       console.error('Failed to update profile', error)
+      setUploading(false)
       toast({
         title: 'Error',
         description: error.message || 'Failed to update profile. Please try again.',
@@ -198,17 +186,18 @@ export default function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-6">
             <div className="group relative cursor-pointer" onClick={handleImageClick}>
-              <Avatar
-                src={user?.image || ''}
-                alt="Profile picture"
-                size="xl"
-                className={cn(
-                  'h-24 w-24 transition-opacity group-hover:opacity-80',
-                  uploading && 'opacity-50'
-                )}
-              />
-              <div className="bg-primary absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg transition-transform group-hover:scale-110">
-                {uploading ? (
+              <div className="border-background bg-muted relative h-28 w-28 overflow-hidden rounded-full border-4 shadow-sm shadow-black/10 transition-all hover:scale-[1.02]">
+                <Avatar
+                  src={previewUrl || user?.image || ''}
+                  alt="Profile picture"
+                  className={cn(
+                    'size-full object-cover transition-opacity duration-300 *:size-full',
+                    (uploading || saving) && 'opacity-50'
+                  )}
+                />
+              </div>
+              <div className="bg-primary ring-background absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg ring-2 transition-transform group-hover:scale-110">
+                {uploading || saving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Camera className="h-4 w-4" />
@@ -225,7 +214,7 @@ export default function ProfilePage() {
             <div>
               <h3 className="font-medium">Profile Picture</h3>
               <p className="text-muted-foreground text-sm font-light">
-                Click the image to upload a new one. PNG, JPG up to 10MB.
+                Click the image to upload a new one. PNG, JPG up to 500kb.
               </p>
             </div>
           </div>

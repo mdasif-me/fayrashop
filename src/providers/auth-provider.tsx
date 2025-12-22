@@ -9,7 +9,43 @@ interface User {
   email: string
   role: string
   image?: string
+  assets?: Array<{ secure_url: string; [key: string]: any }>
   [key: string]: any
+}
+
+function processUserData(userData: any): User {
+  if (!userData) return userData
+
+  // Log keys for debugging
+  console.log('Processing user data. Keys:', Object.keys(userData))
+
+  // If there are assets, we prefer the latest asset as the profile image
+  const assets = userData.assets || userData.Assets
+  if (assets && Array.isArray(assets) && assets.length > 0) {
+    const sortedAssets = [...assets].sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
+      return timeB - timeA
+    })
+
+    const latestAsset = sortedAssets[0]
+
+    if (latestAsset?.secure_url) {
+      // Add a timestamp to the URL to bypass any potential browser/CDN caching
+      // when the image is newly updated
+      const sep = latestAsset.secure_url.includes('?') ? '&' : '?'
+      userData.image = `${latestAsset.secure_url}${sep}t=${new Date().getTime()}`
+
+      console.log('Processed user image from assets:', userData.image)
+    }
+  }
+
+  // Fallback to direct image field if still missing
+  if (!userData.image && userData.image_url) {
+    userData.image = userData.image_url
+  }
+
+  return userData
 }
 
 interface AuthContextType {
@@ -36,16 +72,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await fetchClient('/v1/auth/profile')
-      const userData = response?.data?.user || response?.user || response?.data || response
+      // Try both endpoints to get the most complete data
+      // /v1/users/profile often includes assets/relationships while /v1/auth/profile might only be auth status
+      let response
+      try {
+        response = await fetchClient('/v1/users/profile')
+      } catch (e) {
+        console.warn('Failed to fetch from /v1/users/profile, falling back to /v1/auth/profile')
+        response = await fetchClient('/v1/auth/profile')
+      }
 
-      if (userData) {
-        console.log(
-          'User profile refreshed. ID:',
-          userData.id || userData._id,
-          'Full Data:',
-          userData
-        )
+      const rawData = response?.data?.user || response?.data || response?.user || response
+
+      if (rawData) {
+        const userData = processUserData(rawData)
+        console.log('User profile synchronized. Image:', userData.image)
         setUser(userData)
         localStorage.setItem('user', JSON.stringify(userData))
       } else {
@@ -82,7 +123,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth()
   }, [])
 
-  const login = (token: string, userData: User, refreshToken?: string) => {
+  const login = (token: string, rawData: User, refreshToken?: string) => {
+    const userData = processUserData(rawData)
     localStorage.setItem('token', token)
     if (refreshToken) {
       localStorage.setItem('refresh_token', refreshToken)

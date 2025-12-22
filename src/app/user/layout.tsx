@@ -80,12 +80,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <aside className="w-full shrink-0 lg:w-64">
           <div className="bg-card text-card-foreground sticky top-24 overflow-hidden rounded-lg border shadow-sm">
             <div className="bg-muted/30 flex flex-col items-center px-6 py-8 text-center">
-              <div className="relative mb-3">
+              <div className="border-background ring-primary/10 relative mb-3 h-20 w-20 overflow-hidden rounded-full border-2 shadow-sm ring-2">
                 <Avatar
                   src={user.image || ''}
                   alt={user.name || 'User'}
-                  size="xl"
-                  className="ring-primary/10 h-20 w-20 ring-2 ring-offset-2"
+                  className="size-full object-cover *:size-full"
                 />
               </div>
               <h2 className="text-lg font-bold tracking-tight">{user.name || 'User'}</h2>
