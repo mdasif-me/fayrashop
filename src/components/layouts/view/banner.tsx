@@ -98,7 +98,7 @@ export default function Banner() {
                 </>
               )}
             </div>
-            {showVerificationMessage ? (
+            {showVerificationMessage || isRegistrationSuccess ? (
               <Button
                 size="sm"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 border-none text-sm"
@@ -116,10 +116,6 @@ export default function Banner() {
                     Resend Email
                   </>
                 )}
-              </Button>
-            ) : isRegistrationSuccess ? (
-              <Button size="sm" asChild className="text-sm">
-                <Link href="/auth?mode=login">Go to Login</Link>
               </Button>
             ) : !isRegistrationSuccess ? (
               <div className="flex gap-3 max-md:flex-wrap">
