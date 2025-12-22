@@ -60,8 +60,10 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   }
 
   // Only add Content-Type if there's a body or it's a mutation method
+  // and it's NOT a FormData object (fetch handles FormData automatically)
   if (options.body || ['POST', 'PUT', 'PATCH'].includes(method)) {
-    if (!(headers as any)['Content-Type']) {
+    const isFormData = options.body instanceof FormData
+    if (!isFormData && !(headers as any)['Content-Type']) {
       ;(headers as any)['Content-Type'] = 'application/json'
     }
   }

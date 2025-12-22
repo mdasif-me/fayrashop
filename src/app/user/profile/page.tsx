@@ -47,7 +47,8 @@ export default function ProfilePage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file || !user) return
+    const userId = getUserId()
+    if (!file || !userId) return
 
     setUploading(true)
     toast({
@@ -56,37 +57,58 @@ export default function ProfilePage() {
     })
 
     try {
-      const reader = new FileReader()
-      reader.onloadend = async () => {
-        const base64String = reader.result as string
-        try {
-          await fetchClient(`/v1/users/${user.id || user._id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ image: base64String }),
-          })
-          await refreshProfile()
-          toast({
-            title: 'Success',
-            description: 'Profile picture updated successfully.',
-          })
-        } catch (err: any) {
-          toast({
-            title: 'Upload Failed',
-            description: err.message || 'Failed to update image on server.',
-            variant: 'destructive',
-          })
-        }
-      }
-      reader.readAsDataURL(file)
-    } catch (error) {
-      console.error('Upload failed', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to upload image.',
-        variant: 'destructive',
+      // 1. Send using FormData (more reliable for images)
+      const formData = new FormData()
+      formData.append('image', file)
+
+      await fetchClient(`/v1/users/${userId}`, {
+        method: 'PATCH',
+        body: formData,
       })
+
+      await refreshProfile()
+      toast({
+        title: 'Success',
+        description: 'Profile picture updated successfully.',
+      })
+    } catch (err: any) {
+      console.error('Image upload failed, trying base64 fallback...', err)
+
+      // 2. Fallback to base64 if FormData fails (some APIs prefer JSON)
+      try {
+        const reader = new FileReader()
+        reader.onloadend = async () => {
+          const base64String = reader.result as string
+          try {
+            await fetchClient(`/v1/users/${userId}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ image: base64String }),
+            })
+            await refreshProfile()
+            toast({
+              title: 'Success',
+              description: 'Profile picture updated successfully (Fallback).',
+            })
+          } catch (fallbackErr: any) {
+            toast({
+              title: 'Upload Failed',
+              description: fallbackErr.message || 'Failed to update image on server.',
+              variant: 'destructive',
+            })
+          }
+        }
+        reader.readAsDataURL(file)
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to upload image.',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setUploading(false)
+      // Reset input value so same file can be selected again
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
