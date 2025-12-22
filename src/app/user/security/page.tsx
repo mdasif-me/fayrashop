@@ -63,7 +63,14 @@ export default function SecurityPage() {
 
   const handleDeleteAccount = async () => {
     const userId = user?.id || user?._id
-    if (!userId) return
+    if (!userId) {
+      toast({
+        title: 'Session Error',
+        description: 'User information not found. Please try logging in again.',
+        variant: 'destructive',
+      })
+      return
+    }
 
     if (
       !confirm(
@@ -75,26 +82,23 @@ export default function SecurityPage() {
 
     setIsDeleting(true)
     try {
+      console.log('Attempting to delete account for user:', userId)
       await fetchClient(`/v1/users/${userId}`, {
         method: 'DELETE',
       })
-
-      // Clear all local data immediately
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
 
       toast({
         title: 'Account Deleted',
         description: 'Your account has been removed successfully.',
       })
 
-      // Redirect to home page immediately
-      window.location.href = '/'
+      // Use the logout function which handles storage cleanup and redirection
+      await logout()
     } catch (error: any) {
+      console.error('Account deletion error:', error)
       toast({
         title: 'Error',
-        description: error.message || 'Failed to delete account.',
+        description: error.message || 'Failed to delete account. Please try again later.',
         variant: 'destructive',
       })
     } finally {

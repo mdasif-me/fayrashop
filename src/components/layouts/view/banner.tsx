@@ -26,11 +26,26 @@ export default function Banner() {
   }, [])
 
   const isHome = pathname === '/'
-  const isRegistrationSuccess = isHome && searchParams.get('registered') === 'true'
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
-  // Show verification message if user status is PENDING
+  useEffect(() => {
+    const urlEmail = searchParams.get('email')
+    const urlRegistered = searchParams.get('registered') === 'true'
+
+    if (urlRegistered && urlEmail) {
+      localStorage.setItem('pending_verification_email', urlEmail)
+      setPendingEmail(urlEmail)
+    } else {
+      const storedEmail = localStorage.getItem('pending_verification_email')
+      setPendingEmail(storedEmail)
+    }
+  }, [searchParams])
+
+  // Show verification message if user status is PENDING (logged in)
+  // or if they just registered (not logged in yet)
   const showVerificationMessage = user?.status === 'PENDING'
-  const userEmail = user?.email || searchParams.get('email') || ''
+  const isRegistrationSuccess = !!pendingEmail && !user
+  const userEmail = user?.email || pendingEmail || ''
 
   const handleResendVerification = async () => {
     setIsResending(true)

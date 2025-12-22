@@ -48,6 +48,7 @@ const Login = () => {
       const userData = result?.data?.user || result?.user
 
       if (token && userData) {
+        localStorage.removeItem('pending_verification_email')
         login(token, userData)
         toast({
           title: 'Login Successful',
