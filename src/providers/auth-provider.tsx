@@ -37,16 +37,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const response = await fetchClient('/v1/auth/profile')
-      const userData = response?.data || response
+      const userData = response?.data?.user || response?.user || response?.data || response
+
       if (userData) {
-        console.log('User profile refreshed successfully:', userData)
+        console.log(
+          'User profile refreshed. ID:',
+          userData.id || userData._id,
+          'Full Data:',
+          userData
+        )
         setUser(userData)
         localStorage.setItem('user', JSON.stringify(userData))
+      } else {
+        console.warn('Profile refresh returned no user data:', response)
       }
     } catch (error) {
       console.error('Failed to refresh profile', error)
-      // If profile fetch fails specifically with 401/403, fetchClient will try to refresh
-      // If it still fails, user might need to login again
     } finally {
       setLoading(false)
     }
@@ -79,8 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (token: string, userData: User) => {
     localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(userData))
-    document.cookie = `token=${token}; path=/; max-age=86400`
+    document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
     setUser(userData)
+    setLoading(false)
   }
 
   const logout = async () => {

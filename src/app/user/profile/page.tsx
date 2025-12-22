@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils'
 
 export default function ProfilePage() {
   const { user, refreshProfile } = useAuth()
-  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
@@ -22,6 +21,8 @@ export default function ProfilePage() {
   })
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+
+  const getUserId = () => user?.id || user?._id
 
   useEffect(() => {
     if (user) {
@@ -48,31 +49,18 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]
     if (!file || !user) return
 
-    // Show immediate feedback
     setUploading(true)
-    const toastId = toast({
+    toast({
       title: 'Uploading...',
       description: 'Please wait while we upload your profile picture.',
     })
 
     try {
-      // 1. In a real scenario, we'd upload to an S3/Cloudinary endpoint
-      // For now, we'll simulate the upload or use a data URL for immediate show
-      // if the backend supports direct PATCH with image data or if we have an upload API.
-
-      // Mocking a file upload to get a URL (if your backend has an upload endpoint, use it here)
-      // Since I don't see a confirmed upload endpoint working, I'll update the user data
-      // with a placeholder or the actual file if the backend supports it.
-
-      // Let's assume the PATCH endpoint can handle an 'image' field update.
-      // If you have a separate file upload API, call it here first.
-
-      // Converting to base64 for demonstration if no upload API exists
       const reader = new FileReader()
       reader.onloadend = async () => {
         const base64String = reader.result as string
         try {
-          await fetchClient(`/v1/users/${user.id}`, {
+          await fetchClient(`/v1/users/${user.id || user._id}`, {
             method: 'PATCH',
             body: JSON.stringify({ image: base64String }),
           })
@@ -87,8 +75,6 @@ export default function ProfilePage() {
             description: err.message || 'Failed to update image on server.',
             variant: 'destructive',
           })
-        } finally {
-          setUploading(true)
         }
       }
       reader.readAsDataURL(file)
@@ -105,11 +91,15 @@ export default function ProfilePage() {
   }
 
   const handleSave = async () => {
-    if (!user) return
+    const userId = getUserId()
+    if (!userId) {
+      toast({ title: 'Error', description: 'User ID not found.', variant: 'destructive' })
+      return
+    }
 
     setSaving(true)
     try {
-      await fetchClient(`/v1/users/${user.id}`, {
+      await fetchClient(`/v1/users/${userId}`, {
         method: 'PATCH',
         body: JSON.stringify(formData),
       })
@@ -120,11 +110,11 @@ export default function ProfilePage() {
         title: 'Profile updated',
         description: 'Your profile has been updated successfully.',
       })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update profile', error)
       toast({
         title: 'Error',
-        description: 'Failed to update profile. Please try again.',
+        description: error.message || 'Failed to update profile. Please try again.',
         variant: 'destructive',
       })
     } finally {
@@ -133,7 +123,11 @@ export default function ProfilePage() {
   }
 
   if (!user) {
-    return <div>Please sign in to view your profile.</div>
+    return (
+      <div className="flex items-center justify-center p-8">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -160,7 +154,7 @@ export default function ProfilePage() {
                   uploading && 'opacity-50'
                 )}
               />
-              <div className="bg-primary hover:bg-primary/90 absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg transition-transform group-hover:scale-110">
+              <div className="bg-primary absolute right-0 bottom-0 rounded-full p-2 text-white shadow-lg transition-transform group-hover:scale-110">
                 {uploading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -190,12 +184,9 @@ export default function ProfilePage() {
                 id="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>
               <input
@@ -203,9 +194,12 @@ export default function ProfilePage() {
                 type="email"
                 value={user?.email || ''}
                 readOnly
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm opacity-60 file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="phone">Phone number</Label>
               <input
@@ -213,7 +207,7 @@ export default function ProfilePage() {
                 type="tel"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
           </div>

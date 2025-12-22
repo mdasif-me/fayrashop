@@ -53,7 +53,7 @@ const Login = () => {
           title: 'Login Successful',
           description: 'Welcome back!',
         })
-        router.push('/')
+        router.push('/user')
       } else {
         console.error('Login parsing failed. Result:', result)
         throw new Error('Invalid response from server: Missing token or user data')

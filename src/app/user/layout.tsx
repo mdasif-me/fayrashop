@@ -42,11 +42,6 @@ const sidebarItems = [
     icon: Shield,
   },
   {
-    title: 'User Management',
-    href: '/user/management',
-    icon: User,
-  },
-  {
     title: 'Customer Support',
     href: '/user/support',
     icon: IconHeadphones,
@@ -61,11 +56,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    if (mounted && !loading && (!isAuthenticated || !user)) {
+      router.push('/auth')
+    }
+  }, [mounted, loading, isAuthenticated, user, router])
 
-  if (!mounted) return null
-
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="text-primary h-8 w-8 animate-spin" />
@@ -73,34 +69,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     )
   }
 
-  // Strictly hide user section if not authenticated
+  // Strictly hide if not authenticated
   if (!isAuthenticated || !user) {
-    return (
-      <div className="container mx-auto px-4 py-16">
-        <Card className="mx-auto max-w-2xl border-none p-8 text-center shadow-xl ring-1 ring-slate-200 dark:ring-slate-800">
-          <div className="bg-primary/10 mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full">
-            <Shield className="text-primary h-10 w-10" />
-          </div>
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight">Access Restricted</h1>
-          <p className="text-muted-foreground mb-8 text-lg">
-            This section contains private user information. Please sign in to view your dashboard,
-            manage your profile, and track your orders.
-          </p>
-          <div className="flex flex-col justify-center gap-4 sm:flex-row">
-            <Button
-              asChild
-              size="lg"
-              className="bg-primary hover:bg-primary/90 px-8 text-lg text-white"
-            >
-              <Link href="/auth">Sign In Now</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg" className="px-8 text-lg">
-              <Link href="/">Back to Home</Link>
-            </Button>
-          </div>
-        </Card>
-      </div>
-    )
+    return null
   }
 
   return (

@@ -62,7 +62,8 @@ export default function SecurityPage() {
   }
 
   const handleDeleteAccount = async () => {
-    if (!user) return
+    const userId = user?.id || user?._id
+    if (!userId) return
 
     if (
       !confirm(
@@ -74,7 +75,7 @@ export default function SecurityPage() {
 
     setIsDeleting(true)
     try {
-      await fetchClient(`/v1/users/${user.id}`, {
+      await fetchClient(`/v1/users/${userId}`, {
         method: 'DELETE',
       })
       toast({
@@ -171,37 +172,32 @@ export default function SecurityPage() {
       </Card>
 
       <Card className="border-red-100 bg-red-50/30 dark:border-red-900/30 dark:bg-red-950/10">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl font-bold text-red-600 dark:text-red-400">
-            <AlertTriangle className="h-5 w-5" /> Danger Zone
-          </CardTitle>
-          <CardDescription>Irreversible actions for your account.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <label className="text-base font-semibold text-red-700 dark:text-red-300">
-                Delete Account
-              </label>
-              <p className="text-sm text-red-600/70 dark:text-red-400/70">
-                Permanently delete your account and all of your content. This action cannot be
-                undone.
-              </p>
+              <CardTitle className="flex items-center gap-2 text-xl font-bold text-red-600 dark:text-red-400">
+                <AlertTriangle className="h-5 w-5" /> Danger Zone
+              </CardTitle>
+              <CardDescription>Irreversible actions for your account.</CardDescription>
             </div>
-            <Button
-              variant="destructive"
-              className="px-6"
+            <button
               onClick={handleDeleteAccount}
               disabled={isDeleting}
+              className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
             >
               {isDeleting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-3 w-3 animate-spin" />
               ) : (
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2 className="h-3 w-3" />
               )}
               Delete Account
-            </Button>
+            </button>
           </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-red-600/70 dark:text-red-400/70">
+            Permanently delete your account and all of your content. This action cannot be undone.
+          </p>
         </CardContent>
       </Card>
     </div>

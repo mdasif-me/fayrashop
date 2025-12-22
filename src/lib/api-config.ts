@@ -102,8 +102,9 @@ export async function logoutClient() {
   const token = getStoredToken()
   try {
     if (token) {
-      // Use the specific logout format requested ?token=...
-      await fetchClient(`/v1/auth/logout?token=${token}`, {
+      // The user specifically requested /auth/logout?token=...
+      // We'll try it via our proxy which adds /v1 if needed, or hit the absolute path
+      await fetch(`${API_BASE_URL}/v1/auth/logout?token=${token}`, {
         method: 'GET',
       })
     }
