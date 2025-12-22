@@ -48,9 +48,9 @@ const Register = () => {
 
       toast({
         title: 'Registration Successful',
-        description: 'Please check your email to verify your account before logging in.',
+        description: 'Please check your email to verify your account. You can now browse the shop.',
       })
-      router.push('/auth?mode=login')
+      router.push('/')
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error || '')
       if (message.toLowerCase().includes('user already exists')) {
