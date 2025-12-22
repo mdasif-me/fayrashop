@@ -30,9 +30,14 @@ export default function AuthSwitcher() {
       await fetchClient(`/v1/users/${user.id || user._id}`, {
         method: 'DELETE',
       })
+
+      // Clear all local data immediately
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+
       alert('Your account has been deleted successfully.')
-      await logout()
-      router.push('/')
+      window.location.href = '/'
     } catch (error: any) {
       alert(error.message || 'Failed to delete account.')
     } finally {
