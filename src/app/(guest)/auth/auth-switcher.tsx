@@ -58,29 +58,13 @@ export default function AuthSwitcher() {
           </p>
         </div>
 
-        <div className="mt-8 space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-950/20">
-          <p className="text-xs font-medium tracking-wider text-red-600 uppercase">Danger Zone</p>
-          <p className="text-sm text-red-600/80">
-            If you want to remove your account entirely, you can do so below.
-          </p>
-          <Button
-            variant="destructive"
-            className="w-full"
-            onClick={handleDeleteAccount}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-2 h-4 w-4" />
-            )}
-            Permanently Delete My Account
-          </Button>
-        </div>
+        <Button className="mt-6 w-full" onClick={logout}>
+          Sign Out
+        </Button>
 
         <Button
           variant="ghost"
-          className="mt-4 w-full"
+          className="mt-2 w-full"
           onClick={() => router.push('/user/profile')}
         >
           Go to Dashboard
