@@ -52,63 +52,94 @@ export default function ProfilePage() {
 
     setUploading(true)
     toast({
-      title: 'Uploading...',
-      description: 'Please wait while we upload your profile picture.',
+      title: 'Processing Image',
+      description: 'Optimizing image for server...',
     })
 
     try {
-      // 1. Send using FormData (more reliable for images)
-      const formData = new FormData()
-      formData.append('image', file)
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
 
-      await fetchClient(`/v1/users/${userId}`, {
-        method: 'PATCH',
-        body: formData,
-      })
+      reader.onload = async (event) => {
+        const img = new Image()
+        img.src = event.target?.result as string
 
-      await refreshProfile()
-      toast({
-        title: 'Success',
-        description: 'Profile picture updated successfully.',
-      })
-    } catch (err: any) {
-      console.error('Image upload failed, trying base64 fallback...', err)
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
 
-      // 2. Fallback to base64 if FormData fails (some APIs prefer JSON)
-      try {
-        const reader = new FileReader()
-        reader.onloadend = async () => {
-          const base64String = reader.result as string
+          // Resize to 500px max (standard for avatars)
+          const MAX_SIZE = 500
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width
+              width = MAX_SIZE
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height
+              height = MAX_SIZE
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          // Get compressed Base64
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8)
+          // Extract just the base64 part (remove "data:image/jpeg;base64,")
+          const base64String = compressedDataUrl.split(',')[1]
+
           try {
+            // Try sending raw base64 first (many backends expect this)
             await fetchClient(`/v1/users/${userId}`, {
               method: 'PATCH',
               body: JSON.stringify({ image: base64String }),
             })
+
             await refreshProfile()
             toast({
               title: 'Success',
-              description: 'Profile picture updated successfully (Fallback).',
+              description: 'Profile picture updated successfully.',
             })
-          } catch (fallbackErr: any) {
-            toast({
-              title: 'Upload Failed',
-              description: fallbackErr.message || 'Failed to update image on server.',
-              variant: 'destructive',
-            })
+          } catch (err: any) {
+            console.error('Raw base64 upload failed, trying with prefix...', err)
+
+            try {
+              // Fallback: Try sending with the data URL prefix
+              await fetchClient(`/v1/users/${userId}`, {
+                method: 'PATCH',
+                body: JSON.stringify({ image: compressedDataUrl }),
+              })
+              await refreshProfile()
+              toast({
+                title: 'Success',
+                description: 'Profile picture updated successfully.',
+              })
+            } catch (fallbackErr: any) {
+              toast({
+                title: 'Server Error (500)',
+                description: 'The server is having trouble processing this image format.',
+                variant: 'destructive',
+              })
+            }
+          } finally {
+            if (fileInputRef.current) fileInputRef.current.value = ''
+            setUploading(false)
           }
         }
-        reader.readAsDataURL(file)
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to upload image.',
-          variant: 'destructive',
-        })
       }
-    } finally {
+
+      reader.onerror = () => {
+        toast({ title: 'Error', description: 'Failed to read image.', variant: 'destructive' })
+        setUploading(false)
+      }
+    } catch (error) {
+      console.error('Upload process failed:', error)
       setUploading(false)
-      // Reset input value so same file can be selected again
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
