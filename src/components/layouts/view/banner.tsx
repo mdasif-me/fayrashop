@@ -1,6 +1,7 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { TicketPercent, XIcon, Mail, RefreshCw } from 'lucide-react'
 
@@ -25,11 +26,26 @@ export default function Banner() {
   }, [])
 
   const isHome = pathname === '/'
-  const isRegistrationSuccess = isHome && searchParams.get('registered') === 'true'
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
-  // Show verification message if user status is PENDING
+  useEffect(() => {
+    const urlEmail = searchParams.get('email')
+    const urlRegistered = searchParams.get('registered') === 'true'
+
+    if (urlRegistered && urlEmail) {
+      localStorage.setItem('pending_verification_email', urlEmail)
+      setPendingEmail(urlEmail)
+    } else {
+      const storedEmail = localStorage.getItem('pending_verification_email')
+      setPendingEmail(storedEmail)
+    }
+  }, [searchParams])
+
+  // Show verification message if user status is PENDING (logged in)
+  // or if they just registered (not logged in yet)
   const showVerificationMessage = user?.status === 'PENDING'
-  const userEmail = user?.email || ''
+  const isRegistrationSuccess = !!pendingEmail && !user
+  const userEmail = user?.email || pendingEmail || ''
 
   const handleResendVerification = async () => {
     setIsResending(true)
@@ -64,7 +80,7 @@ export default function Banner() {
             className="bg-primary/15 hidden size-9 shrink-0 items-center justify-center rounded-full max-md:mt-0.5 md:flex"
             aria-hidden="true"
           >
-            {showVerificationMessage ? (
+            {showVerificationMessage || isRegistrationSuccess ? (
               <Mail className="opacity-80" size={16} />
             ) : (
               <TicketPercent className="opacity-80" size={16} />
@@ -82,9 +98,10 @@ export default function Banner() {
                 </>
               ) : isRegistrationSuccess ? (
                 <>
-                  <p className="text-sm font-medium">Registration Complete!</p>
+                  <p className="text-sm font-medium">Verification Required!</p>
                   <p className="text-muted-foreground text-sm">
-                    Please check your email to verify your account.
+                    We&apos;ve sent a verification link to {userEmail}. Please verify your account
+                    before logging in.
                   </p>
                 </>
               ) : (
@@ -96,7 +113,7 @@ export default function Banner() {
                 </>
               )}
             </div>
-            {showVerificationMessage ? (
+            {showVerificationMessage || isRegistrationSuccess ? (
               <Button
                 size="sm"
                 className="bg-primary text-primary-foreground hover:bg-primary/90 border-none text-sm"
