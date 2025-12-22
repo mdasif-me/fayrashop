@@ -78,11 +78,19 @@ export default function SecurityPage() {
       await fetchClient(`/v1/users/${userId}`, {
         method: 'DELETE',
       })
+
+      // Clear all local data immediately
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+
       toast({
         title: 'Account Deleted',
         description: 'Your account has been removed successfully.',
       })
-      await logout()
+
+      // Redirect to home page immediately
+      window.location.href = '/'
     } catch (error: any) {
       toast({
         title: 'Error',
