@@ -16,7 +16,7 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   isAuthenticated: boolean
-  login: (token: string, user: User) => void
+  login: (token: string, user: User, refreshToken?: string) => void
   logout: () => Promise<void>
   refreshProfile: () => Promise<void>
 }
@@ -82,8 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth()
   }, [])
 
-  const login = (token: string, userData: User) => {
+  const login = (token: string, userData: User, refreshToken?: string) => {
     localStorage.setItem('token', token)
+    if (refreshToken) {
+      localStorage.setItem('refresh_token', refreshToken)
+    }
     localStorage.setItem('user', JSON.stringify(userData))
     document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
     setUser(userData)

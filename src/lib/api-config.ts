@@ -8,20 +8,35 @@ function getStoredToken() {
   return localStorage.getItem('token')
 }
 
-function setStoredToken(token: string) {
+function getStoredRefreshToken() {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('refresh_token')
+}
+
+function setStoredToken(token: string, refreshToken?: string) {
   if (typeof window === 'undefined') return
   localStorage.setItem('token', token)
   document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
+
+  if (refreshToken) {
+    localStorage.setItem('refresh_token', refreshToken)
+  }
 }
 
 async function refreshAuthToken() {
   const url = `${API_BASE_URL}/v1/auth/refresh`
+  const refreshToken = getStoredRefreshToken()
+
+  if (!refreshToken) {
+    throw new Error('No refresh token available')
+  }
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
+    body: JSON.stringify({ refresh_token: refreshToken }),
   })
 
   let data
@@ -37,13 +52,22 @@ async function refreshAuthToken() {
     )
   }
 
-  const token = data?.data?.access_token || data?.access_token || data?.token || data?.data?.token
+  const token =
+    data?.data?.tokens?.access_token ||
+    data?.tokens?.access_token ||
+    data?.data?.access_token ||
+    data?.access_token ||
+    data?.data?.token ||
+    data?.token
+
+  const newRefreshToken =
+    data?.data?.tokens?.refresh_token || data?.tokens?.refresh_token || data?.refresh_token
 
   if (!token) {
     throw new Error('No token received from refresh endpoint')
   }
 
-  setStoredToken(token)
+  setStoredToken(token, newRefreshToken)
   return token
 }
 
@@ -90,6 +114,7 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
       } catch (refreshError) {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token')
+          localStorage.removeItem('refresh_token')
           localStorage.removeItem('user')
           document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
         }
@@ -120,6 +145,7 @@ export async function logoutClient() {
   } finally {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token')
+      localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
       window.location.href = '/'
