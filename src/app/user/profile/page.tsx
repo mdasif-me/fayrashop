@@ -8,18 +8,11 @@ import { Avatar } from '@/components/ui/avatar'
 import { Camera, Loader2 } from 'lucide-react'
 import { fetchClient } from '@/lib/api-config'
 import { useToast } from '@/hooks/use-toast'
-
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  phone?: string
-  image?: string
-}
+import { useAuth } from '@/providers/auth-provider'
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
+  const { user, refreshProfile } = useAuth()
+  const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -28,43 +21,13 @@ export default function ProfilePage() {
   const { toast } = useToast()
 
   useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
-          const parsed = JSON.parse(storedUser)
-          setUser(parsed)
-          setFormData({
-            name: parsed.name || '',
-            phone: parsed.phone || '',
-          })
-        }
-
-        const response = await fetchClient('/v1/auth/profile')
-        let userData = null
-        if (response?.data) {
-          userData = response.data
-        } else if (response) {
-          userData = response
-        }
-
-        if (userData) {
-          setUser(userData)
-          localStorage.setItem('user', JSON.stringify(userData))
-          setFormData({
-            name: userData.name || '',
-            phone: userData.phone || '',
-          })
-        }
-      } catch (error) {
-        console.error('Failed to load profile', error)
-      } finally {
-        setLoading(false)
-      }
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        phone: user.phone || '',
+      })
     }
-
-    loadProfile()
-  }, [])
+  }, [user])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
@@ -79,20 +42,12 @@ export default function ProfilePage() {
 
     setSaving(true)
     try {
-      const response = await fetchClient(`/v1/users/${user.id}`, {
+      await fetchClient(`/v1/users/${user.id}`, {
         method: 'PATCH',
         body: JSON.stringify(formData),
       })
 
-      // Update local state with new data
-      const updatedUser = { ...user, ...formData }
-      if (response?.data) {
-        // If API returns updated object, use it
-        Object.assign(updatedUser, response.data)
-      }
-
-      setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
+      await refreshProfile()
 
       toast({
         title: 'Profile updated',
@@ -110,8 +65,8 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading && !user) {
-    return <div>Loading profile...</div>
+  if (!user) {
+    return <div>Please sign in to view your profile.</div>
   }
 
   return (
@@ -152,7 +107,7 @@ export default function ProfilePage() {
                 id="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               />
             </div>
           </div>
@@ -165,7 +120,7 @@ export default function ProfilePage() {
                 type="email"
                 value={user?.email || ''}
                 readOnly
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm opacity-60 file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm opacity-60 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -175,7 +130,7 @@ export default function ProfilePage() {
                 type="tel"
                 value={formData.phone}
                 onChange={handleInputChange}
-                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
               />
             </div>
           </div>

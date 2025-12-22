@@ -27,47 +27,18 @@ import {
   MenuTrigger,
 } from '@/components/ui/menu'
 import { useTheme } from 'next-themes'
-import { fetchClient } from '@/lib/api-config'
+import { useAuth } from '@/providers/auth-provider'
 
 export function UserMenu() {
   const { resolvedTheme, setTheme } = useTheme()
-  const [user, setUser] = useState<any>(null)
+  const { user, logout, loading } = useAuth()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    const loadUser = async () => {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null
-
-      if (token) {
-        if (storedUser) {
-          setUser(JSON.parse(storedUser))
-        }
-
-        try {
-          const response = await fetchClient('/v1/auth/profile')
-          const userData = response?.data || response
-          if (userData) {
-            setUser(userData)
-            localStorage.setItem('user', JSON.stringify(userData))
-          }
-        } catch (error) {
-          console.error('Failed to load profile in menu', error)
-        }
-      }
-    }
-    loadUser()
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-    window.location.href = '/'
-  }
-
-  if (!mounted) return <div className="size-8" /> // Use a placeholder to keep navbar height consistent
+  if (!mounted || loading) return <div className="size-8" />
 
   if (!user) {
     return (
@@ -112,7 +83,7 @@ export function UserMenu() {
             )}
             <MenuLabel>Switch theme</MenuLabel>
           </MenuItem>
-          <MenuContent>
+          <MenuContent placement="left top">
             <MenuItem onAction={() => setTheme('system')}>
               <IconDeviceDesktop /> System
             </MenuItem>
@@ -141,7 +112,7 @@ export function UserMenu() {
           <IconHeadphones />
           Customer Support
         </MenuItem>
-        <MenuItem onAction={handleLogout}>
+        <MenuItem onAction={logout}>
           <IconLogout />
           Log out
         </MenuItem>

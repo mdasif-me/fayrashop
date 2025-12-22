@@ -195,7 +195,8 @@ const NavbarItem = ({ className, isCurrent, ...props }: NavbarItemProps) => {
       )}
       {...props}
     >
-      {(values) => (
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {(values: any) => (
         <>
           {typeof props.children === 'function' ? props.children(values) : props.children}
 
@@ -274,9 +275,9 @@ const NavbarTrigger = ({ className, onClick, ref, ...props }: NavbarTriggerProps
       variant="ghost"
       aria-label={props['aria-label'] || 'Toggle Navbar'}
       size="icon"
-      className={twMerge('-ml-2 min-lg:hidden', className)}
-      onClick={(event: any) => {
-        onClick?.(event)
+      className={twMerge('-ml-2 lg:hidden', className)}
+      onClick={(event) => {
+        onClick?.(event as any)
         toggleNavbar()
       }}
       {...props}

@@ -85,7 +85,12 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
         await refreshAuthToken()
         return fetchClient(endpoint, options, true)
       } catch (refreshError) {
-        // fall through to throw original error
+        // Clear local storage on refresh failure if unauthorized
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('token')
+          localStorage.removeItem('user')
+          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+        }
       }
     }
 
@@ -95,4 +100,25 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   }
 
   return data
+}
+
+export async function logoutClient() {
+  const token = getStoredToken()
+  try {
+    if (token) {
+      // The user specifically mentioned ?token=... for logout
+      await fetchClient(`/v1/auth/logout?token=${token}`, {
+        method: 'GET', // Or POST, trying GET first based on user's query param example
+      })
+    }
+  } catch (error) {
+    console.error('API Logout failed', error)
+  } finally {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+      window.location.href = '/'
+    }
+  }
 }

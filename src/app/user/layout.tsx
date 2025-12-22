@@ -3,14 +3,22 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { LayoutDashboard, Settings, Shield, User, LogOut, ChevronRight } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Settings,
+  Shield,
+  User,
+  LogOut,
+  ChevronRight,
+  Loader2,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Avatar } from '@/components/ui/avatar'
 import { Card } from '@/components/ui/card'
 import { IconHeadphones } from '@intentui/icons'
-import { fetchClient } from '@/lib/api-config'
+import { useAuth } from '@/providers/auth-provider'
 
 const sidebarItems = [
   {
@@ -34,6 +42,11 @@ const sidebarItems = [
     icon: Shield,
   },
   {
+    title: 'User Management',
+    href: '/user/management',
+    icon: User,
+  },
+  {
     title: 'Customer Support',
     href: '/user/support',
     icon: IconHeadphones,
@@ -43,51 +56,29 @@ const sidebarItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [authorized, setAuthorized] = useState(false)
+  const { user, logout, loading, isAuthenticated } = useAuth()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    const loadData = async () => {
-      if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('token')
-        const storedUser = localStorage.getItem('user')
-
-        if (token) {
-          try {
-            // First set from storage for immediate feel
-            if (storedUser) {
-              setAuthorized(true)
-              setUser(JSON.parse(storedUser))
-            }
-
-            // Then fetch fresh data
-            const response = await fetchClient('/v1/auth/profile')
-            const userData = response?.data || response
-            if (userData) {
-              setAuthorized(true)
-              setUser(userData)
-              localStorage.setItem('user', JSON.stringify(userData))
-            }
-          } catch (error) {
-            console.error('Failed to authorize', error)
-            setAuthorized(false)
-          }
-        }
-      }
-    }
-    loadData()
   }, [])
 
   if (!mounted) return null
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="text-primary h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col gap-8 lg:flex-row">
         <aside className="w-full shrink-0 lg:w-64">
           <div className="bg-card text-card-foreground sticky top-24 overflow-hidden rounded-lg border shadow-sm">
-            {authorized && user ? (
+            {isAuthenticated && user ? (
               <>
                 <div className="bg-muted/30 flex flex-col items-center px-6 py-8 text-center">
                   <div className="relative mb-3">
@@ -110,6 +101,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       return (
                         <Link
                           key={item.href}
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           href={item.href as any}
                           className={cn(
                             'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
@@ -131,18 +123,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <Button
                     variant="outline"
                     className="w-full justify-start border-red-100 text-red-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-950/20"
-                    onClick={async () => {
-                      try {
-                        await fetchClient('/v1/auth/logout')
-                      } catch (error) {
-                        console.error('Logout failed', error)
-                      } finally {
-                        localStorage.removeItem('token')
-                        localStorage.removeItem('user')
-                        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-                        window.location.href = '/'
-                      }
-                    }}
+                    onClick={logout}
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign out
@@ -170,7 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         <main className="flex-1">
-          {authorized ? (
+          {isAuthenticated ? (
             children
           ) : (
             <Card className="flex h-[450px] flex-col items-center justify-center border-none p-8 text-center shadow-none ring-0">
