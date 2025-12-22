@@ -51,13 +51,19 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   const url = `${API_BASE_URL}${endpoint}`
   const token = getStoredToken()
 
-  // Don't send Authorization header for login or register endpoints
+  const method = options.method?.toUpperCase() || 'GET'
   const isAuthRoute = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
 
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
     ...(token && !isAuthRoute && { Authorization: `Bearer ${token}` }),
     ...options.headers,
+  }
+
+  // Only add Content-Type if there's a body or it's a mutation method
+  if (options.body || ['POST', 'PUT', 'PATCH'].includes(method)) {
+    if (!(headers as any)['Content-Type']) {
+      ;(headers as any)['Content-Type'] = 'application/json'
+    }
   }
 
   const response = await fetch(url, {
@@ -72,7 +78,6 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
     data = null
   }
 
-  const method = options.method || 'GET'
   console.log(`[API] ${method} ${endpoint} - Status: ${response.status}`, data)
 
   if (!response.ok) {
