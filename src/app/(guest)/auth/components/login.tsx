@@ -38,15 +38,14 @@ const Login = () => {
       })
 
       const token =
+        result?.data?.tokens?.access_token ||
         result?.tokens?.access_token ||
-        result?.token ||
         result?.data?.token ||
-        result?.accessToken ||
+        result?.token ||
         result?.data?.accessToken ||
-        result?.access_token ||
-        result?.data?.access_token
+        result?.accessToken
 
-      const userData = result?.user || result?.data?.user
+      const userData = result?.data?.user || result?.user
 
       if (token && userData) {
         login(token, userData)
@@ -56,7 +55,8 @@ const Login = () => {
         })
         router.push('/')
       } else {
-        throw new Error('Invalid response from server')
+        console.error('Login parsing failed. Result:', result)
+        throw new Error('Invalid response from server: Missing token or user data')
       }
     } catch (error: unknown) {
       setError('root', {
