@@ -39,26 +39,29 @@ const Login = () => {
         body: JSON.stringify(data),
       })
 
-      const token =
-        result?.data?.tokens?.access_token ||
-        result?.tokens?.access_token ||
-        result?.data?.access_token ||
-        result?.access_token ||
-        result?.data?.token ||
-        result?.token ||
-        result?.data?.accessToken ||
-        result?.accessToken
-
-      const refreshToken =
-        result?.data?.tokens?.refresh_token ||
-        result?.tokens?.refresh_token ||
-        result?.data?.refresh_token ||
-        result?.refresh_token
-
+      // Extract tokens and user data
+      const token = result?.data?.tokens?.access_token || result?.tokens?.access_token ||
+                    result?.data?.access_token || result?.access_token ||
+                    result?.data?.token || result?.token
+      const refreshToken = result?.data?.tokens?.refresh_token || result?.tokens?.refresh_token ||
+                           result?.data?.refresh_token || result?.refresh_token
       const userData = result?.data?.user || result?.user
 
-      if (token && userData) {
-        localStorage.removeItem('pending_verification_email')
+      if (token && userData?.email) {
+        const isPending = isUserPending(userData)
+
+        if (isPending) {
+          localStorage.setItem('pending_verification_email', userData.email)
+          toast({ title: 'Verification Required', description: 'Please verify your email before logging in.' })
+          return router.push(`/?unverified=true&email=${encodeURIComponent(userData.email)}`)
+        }
+
+        // Clear or set pending email based on verification status
+        if (isUserVerified(userData)) {
+          localStorage.removeItem('pending_verification_email')
+        } else {
+          localStorage.setItem('pending_verification_email', userData.email)
+        }
 
         // Save initial login data
         login(token, userData, refreshToken)

@@ -31,6 +31,7 @@ const Register = () => {
       password: '',
       confirmPassword: '',
       role: ERole.USER,
+      is_agree: false,
     },
   })
 
@@ -40,28 +41,18 @@ const Register = () => {
   const onSubmit = async (data: RegisterType) => {
     try {
       const { confirmPassword, ...payload } = data
-
-      const result = await fetchClient('/v1/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
+      await fetchClient('/v1/auth/register', { method: 'POST', body: JSON.stringify(payload) })
 
       toast({
         title: 'Welcome to FayraShop!',
-        description:
-          'Registration successful. Please check your email to verify your account before logging in.',
+        description: 'Registration successful. Please check your email to verify your account.',
       })
-      router.push(`/?registered=true&email=${encodeURIComponent(data.email)}`)
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error || '')
-      if (message.toLowerCase().includes('user already exists')) {
-        router.push('/')
-        return
-      }
 
-      setError('root', {
-        message: message || 'Something went wrong',
-      })
+      localStorage.setItem('pending_verification_email', data.email)
+      router.push(`/?registered=true&email=${encodeURIComponent(data.email)}`)
+    } catch (error: any) {
+      if (error.message?.toLowerCase().includes('user already exists')) return router.push('/')
+      setError('root', { message: error.message || 'Something went wrong' })
     }
   }
 
@@ -89,7 +80,6 @@ const Register = () => {
           render={({ field }) => (
             <TextField
               {...field}
-              autoFocus
               isRequired
               label="Email"
               type="email"
@@ -132,7 +122,23 @@ const Register = () => {
           )}
         />
         <div>
-          <Checkbox isRequired>Are you agree to FayraShop</Checkbox>
+          <Controller
+            name="is_agree"
+            control={control}
+            render={({ field: { value, onChange, ...field } }) => (
+              <Checkbox
+                {...field}
+                isSelected={value}
+                onChange={onChange}
+                isInvalid={!!errors.is_agree}
+              >
+                Are you agree to FayraShop
+              </Checkbox>
+            )}
+          />
+          {errors.is_agree && (
+            <p className="text-destructive mt-1 text-xs">{errors.is_agree.message}</p>
+          )}
           <Description className="[&>strong]:text-fg mt-2 block">
             <article>
               By registering, you agree to our{' '}
@@ -148,6 +154,13 @@ const Register = () => {
           </Description>
         </div>
       </div>
+
+      {errors.root && (
+        <div className="text-destructive mb-4 text-center text-sm font-medium">
+          {errors.root.message}
+        </div>
+      )}
+
       <Button type="submit" className={`w-full text-white! uppercase`}>
         Register
         <IconArrowRight className="shrink-0 text-white!" />

@@ -48,7 +48,10 @@ export const registerSchema = z
       .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
     confirmPassword: z.string(),
     role: z.enum(Object.values(ERole) as [string, ...string[]], {
-      message: 'Role must be either USER, ADMIN, SELLER, or MANAGER',
+      message: 'Role must be either CUSTOMER, ADMIN, or MODERATOR',
+    }),
+    is_agree: z.boolean().refine((val) => val === true, {
+      message: 'You must agree to the terms and conditions',
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {

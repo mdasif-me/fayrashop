@@ -13,38 +13,19 @@ interface User {
   [key: string]: any
 }
 
-function processUserData(userData: any): User {
-  if (!userData) return userData
+function processUserData(userData: any): User | null {
+  if (!userData || (!userData.id && !userData._id && !userData.email)) return null
 
-  // Log keys for debugging
-  console.log('Processing user data. Keys:', Object.keys(userData))
-
-  // If there are assets, we prefer the latest asset as the profile image
   const assets = userData.assets || userData.Assets
-  if (assets && Array.isArray(assets) && assets.length > 0) {
-    const sortedAssets = [...assets].sort((a, b) => {
-      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0
-      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0
-      return timeB - timeA
-    })
-
-    const latestAsset = sortedAssets[0]
-
-    if (latestAsset?.secure_url) {
-      // Add a timestamp to the URL to bypass any potential browser/CDN caching
-      // when the image is newly updated
-      const sep = latestAsset.secure_url.includes('?') ? '&' : '?'
-      userData.image = `${latestAsset.secure_url}${sep}t=${new Date().getTime()}`
-
-      console.log('Processed user image from assets:', userData.image)
+  if (Array.isArray(assets) && assets.length > 0) {
+    const latest = [...assets].sort((a, b) =>
+      new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+    )[0]
+    if (latest?.secure_url) {
+      userData.image = `${latest.secure_url}${latest.secure_url.includes('?') ? '&' : '?'}t=${Date.now()}`
     }
   }
-
-  // Fallback to direct image field if still missing
-  if (!userData.image && userData.image_url) {
-    userData.image = userData.image_url
-  }
-
+  userData.image = userData.image || userData.image_url
   return userData
 }
 
@@ -63,37 +44,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
+  const logout = async () => {
+    await logoutClient()
+    setUser(null)
+  }
+
   const refreshProfile = async () => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      setUser(null)
-      setLoading(false)
-      return
-    }
+    if (!localStorage.getItem('token')) return setUser(null), setLoading(false)
 
     try {
-      // Try both endpoints to get the most complete data
-      // /v1/users/profile often includes assets/relationships while /v1/auth/profile might only be auth status
       let response
       try {
         response = await fetchClient('/v1/users/profile')
-      } catch (e) {
-        console.warn('Failed to fetch from /v1/users/profile, falling back to /v1/auth/profile')
+      } catch {
         response = await fetchClient('/v1/auth/profile')
       }
 
-      const rawData = response?.data?.user || response?.data || response?.user || response
-
-      if (rawData) {
-        const userData = processUserData(rawData)
-        console.log('User profile synchronized. Image:', userData.image)
+      const userData = processUserData(response?.data?.user || response?.data || response?.user || response)
+      if (userData) {
         setUser(userData)
         localStorage.setItem('user', JSON.stringify(userData))
       } else {
-        console.warn('Profile refresh returned no user data:', response)
+        logout()
       }
     } catch (error) {
-      console.error('Failed to refresh profile', error)
+      console.error('Profile refresh failed', error)
     } finally {
       setLoading(false)
     }
@@ -102,32 +77,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        const storedUser = localStorage.getItem('user')
         let token = localStorage.getItem('token')
         const refreshToken = localStorage.getItem('refresh_token')
+        const storedUser = localStorage.getItem('user')
 
-        // If access token is missing but refresh token exists, try to refresh first
         if (!token && refreshToken) {
-          console.log('Access token missing, attempting restoration with refresh token...')
-          try {
-            token = await refreshAuthToken()
-          } catch (e) {
-            console.warn('Session restoration failed:', e)
-          }
+          try { token = await refreshAuthToken() } catch {}
         }
 
-        if (storedUser && token) {
-          console.log('Initializing auth from data')
-          setUser(JSON.parse(storedUser))
+        if (token && storedUser) {
+          const parsed = JSON.parse(storedUser)
+          if (parsed?.email) setUser(parsed)
         }
 
-        if (token) {
-          await refreshProfile()
-        } else {
-          setLoading(false)
-        }
-      } catch (error) {
-        console.error('Auth initialization failed', error)
+        if (token) await refreshProfile()
+        else setLoading(false)
+      } catch {
         setLoading(false)
       }
     }
@@ -136,32 +101,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = (token: string, rawData: User, refreshToken?: string) => {
     const userData = processUserData(rawData)
+    if (!userData) return
+
     localStorage.setItem('token', token)
-    if (refreshToken) {
-      localStorage.setItem('refresh_token', refreshToken)
-    }
+    if (refreshToken) localStorage.setItem('refresh_token', refreshToken)
     localStorage.setItem('user', JSON.stringify(userData))
     document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
     setUser(userData)
     setLoading(false)
   }
 
-  const logout = async () => {
-    await logoutClient()
-    setUser(null)
-  }
-
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        isAuthenticated: !!user,
-        login,
-        logout,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, isAuthenticated: !!user, login, logout, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   )
@@ -169,8 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider')
   return context
 }

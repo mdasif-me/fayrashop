@@ -83,8 +83,6 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
     ...options.headers,
   }
 
-  // Only add Content-Type if there's a body or it's a mutation method
-  // and it's NOT a FormData object (fetch handles FormData automatically)
   if (options.body || ['POST', 'PUT', 'PATCH'].includes(method)) {
     const isFormData = options.body instanceof FormData
     if (!isFormData && !(headers as any)['Content-Type']) {
@@ -134,8 +132,6 @@ export async function logoutClient() {
   const token = getStoredToken()
   try {
     if (token) {
-      // The user specifically requested /auth/logout?token=...
-      // We'll try it via our proxy which adds /v1 if needed, or hit the absolute path
       await fetch(`${API_BASE_URL}/v1/auth/logout?token=${token}`, {
         method: 'GET',
       })

@@ -36,6 +36,7 @@ export const API_ROUTES = {
     FORGOT_PASSWORD: '/v1/auth/forgot-password',
     RESET_PASSWORD: '/v1/auth/reset-password',
     VERIFY_EMAIL: '/v1/auth/verify-email',
+    RESEND_VERIFICATION: '/v1/auth/resend-verification',
     PROFILE: '/v1/auth/profile',
   },
   USER: {
