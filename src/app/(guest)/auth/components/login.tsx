@@ -14,7 +14,7 @@ import { fetchClient } from '@/lib/api-config'
 import { useAuth } from '@/providers/auth-provider'
 
 const Login = () => {
-  const { login } = useAuth()
+  const { login, refreshProfile } = useAuth()
   const {
     handleSubmit,
     control,
@@ -57,7 +57,13 @@ const Login = () => {
 
       if (token && userData) {
         localStorage.removeItem('pending_verification_email')
+
+        // Save initial login data
         login(token, userData, refreshToken)
+
+        // Immediately fetch full profile to ensure assets/image are synchronized
+        refreshProfile().catch((e) => console.error('Profile refresh error:', e))
+
         toast({
           title: 'Login Successful',
           description: 'Welcome back!',

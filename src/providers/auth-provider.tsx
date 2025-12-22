@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { fetchClient, logoutClient } from '@/lib/api-config'
+import { fetchClient, logoutClient, refreshAuthToken } from '@/lib/api-config'
 
 interface User {
   id: string
@@ -103,10 +103,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         const storedUser = localStorage.getItem('user')
-        const token = localStorage.getItem('token')
+        let token = localStorage.getItem('token')
+        const refreshToken = localStorage.getItem('refresh_token')
+
+        // If access token is missing but refresh token exists, try to refresh first
+        if (!token && refreshToken) {
+          console.log('Access token missing, attempting restoration with refresh token...')
+          try {
+            token = await refreshAuthToken()
+          } catch (e) {
+            console.warn('Session restoration failed:', e)
+          }
+        }
 
         if (storedUser && token) {
-          console.log('Initializing auth from localStorage')
+          console.log('Initializing auth from data')
           setUser(JSON.parse(storedUser))
         }
 

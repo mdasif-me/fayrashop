@@ -23,7 +23,7 @@ function setStoredToken(token: string, refreshToken?: string) {
   }
 }
 
-async function refreshAuthToken() {
+export async function refreshAuthToken() {
   const url = `${API_BASE_URL}/v1/auth/refresh`
   const refreshToken = getStoredRefreshToken()
 
