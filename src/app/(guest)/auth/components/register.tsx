@@ -47,8 +47,8 @@ const Register = () => {
       })
 
       toast({
-        title: 'Registration Successful',
-        description: 'Please check your email to verify your account. You can now browse the shop.',
+        title: 'Welcome to FayraShop!',
+        description: 'Registration successful. Please check your email to verify your account.',
       })
       router.push('/')
     } catch (error: unknown) {
