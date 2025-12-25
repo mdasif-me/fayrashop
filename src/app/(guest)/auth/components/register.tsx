@@ -43,13 +43,24 @@ const Register = () => {
       const { confirmPassword, ...payload } = data
       await fetchClient('/v1/auth/register', { method: 'POST', body: JSON.stringify(payload) })
 
+      // Automatically request OTP after successful registration
+      try {
+        await fetchClient('/v1/users/request-otp', {
+          method: 'POST',
+          body: JSON.stringify({ email: data.email }),
+        })
+      } catch (otpError) {
+        console.error('Failed to send OTP:', otpError)
+        // Continue even if OTP request fails
+      }
+
       toast({
         title: 'Welcome to FayraShop!',
-        description: 'Registration successful. Please check your email to verify your account.',
+        description: 'Registration successful. Please check your email for the OTP code to verify your account.',
       })
 
       localStorage.setItem('pending_verification_email', data.email)
-      router.push(`/?registered=true&email=${encodeURIComponent(data.email)}`)
+      router.push(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`)
     } catch (error: any) {
       if (error.message?.toLowerCase().includes('user already exists')) return router.push('/')
       setError('root', { message: error.message || 'Something went wrong' })

@@ -1,9 +1,9 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { TicketPercent, XIcon, Mail, RefreshCw } from 'lucide-react'
+import { TicketPercent, XIcon, Mail, ArrowRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import Timer from '../../ui/timer'
@@ -17,7 +17,7 @@ export default function Banner() {
   const { user, loading, refreshProfile } = useAuth()
   const [isVisible, setIsVisible] = useState(true)
   const [mounted, setMounted] = useState(false)
-  const [isResending, setIsResending] = useState(false)
+  const router = useRouter()
 
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -85,7 +85,7 @@ export default function Banner() {
     return () => clearInterval(interval)
   }, [isVerificationBanner, user, refreshProfile])
 
-  const handleResendVerification = async () => {
+  const handleGoToOtpPage = () => {
     if (!userEmail) {
       toast({
         title: 'Error',
@@ -95,46 +95,7 @@ export default function Banner() {
       return
     }
 
-    setIsResending(true)
-    try {
-      await fetchClient('/v1/auth/resend-verification', {
-        method: 'POST',
-        body: JSON.stringify({ email: userEmail }),
-      })
-
-      toast({
-        title: 'Verification Email Sent',
-        description: `A new verification link has been sent to ${userEmail}.`,
-      })
-
-      // Also trigger a profile refresh to check if they just verified
-      if (user) {
-        refreshProfile().catch(() => {})
-      }
-    } catch (error: any) {
-      // Be extremely specific about clearing the banner.
-      // Only clear if the backend explicitly says the user is already verified.
-      const errorMessage = error.message?.toLowerCase() || ''
-      const isAlreadyVerified =
-        errorMessage.includes('already verified') ||
-        errorMessage.includes('user is verified')
-
-      if (isAlreadyVerified) {
-        localStorage.removeItem('pending_verification_email')
-        setPendingEmail(null)
-        if (user) {
-          refreshProfile()
-        }
-      }
-
-      toast({
-        title: isAlreadyVerified ? 'Notice' : 'Error',
-        description: error.message || 'Failed to resend verification email',
-        variant: isAlreadyVerified ? 'default' : 'destructive',
-      })
-    } finally {
-      setIsResending(false)
-    }
+    router.push(`/auth/verify-otp?email=${encodeURIComponent(userEmail)}`)
   }
 
   // If it's a verification message, we want it to be ALWAYS visible.
@@ -178,8 +139,8 @@ export default function Banner() {
                   </p>
                   <p className="text-muted-foreground text-sm">
                     {showVerificationMessage
-                      ? `Please check your email (${userEmail}) to verify your account. You won't be able to access all features until your email is verified.`
-                      : `We've sent a verification link to ${userEmail}. Please verify your account before logging in.`}
+                      ? `Please enter the OTP code sent to ${userEmail} to verify your account. You won't be able to access all features until your email is verified.`
+                      : `We've sent an OTP code to ${userEmail}. Please enter the code to verify your account.`}
                   </p>
                 </>
               ) : (
@@ -196,11 +157,10 @@ export default function Banner() {
               <Button
                 size="sm"
                 className="bg-yellow-600 text-white hover:bg-yellow-700 border-none text-sm"
-                onClick={handleResendVerification}
-                disabled={isResending}
+                onClick={handleGoToOtpPage}
               >
-                <RefreshCw className={cn('mr-2 h-4 w-4', isResending && 'animate-spin')} />
-                {isResending ? 'Sending...' : 'Resend Email'}
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Enter OTP Code
               </Button>
             ) : (
               <div className="flex gap-3 max-md:flex-wrap">
@@ -229,6 +189,7 @@ export default function Banner() {
           </Button>
         )}
       </div>
+
     </div>
   )
 }

@@ -1,5 +1,4 @@
 'use client'
-
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
@@ -27,6 +26,7 @@ const Login = () => {
     defaultValues: {
       email: '',
       password: '',
+      otp: '',
     },
   })
   const { toast } = useToast()
@@ -50,16 +50,43 @@ const Login = () => {
       if (token && userData?.email) {
         const isPending = isUserPending(userData)
 
-        if (isPending) {
+        // If user provided OTP, verify it
+        if (data.otp && data.otp.trim()) {
+          try {
+            await fetchClient('/v1/users/verify-otp', {
+              method: 'POST',
+              body: JSON.stringify({ email: userData.email, otp: data.otp }),
+            })
+
+            // Clear pending email after successful OTP verification
+            localStorage.removeItem('pending_verification_email')
+
+            toast({
+              title: 'Email Verified!',
+              description: 'Your email has been verified successfully.',
+            })
+          } catch (otpError: any) {
+            toast({
+              title: 'OTP Verification Failed',
+              description: otpError.message || 'Invalid OTP code.',
+              variant: 'destructive',
+            })
+            // Still allow login but keep pending status
+            localStorage.setItem('pending_verification_email', userData.email)
+          }
+        } else if (isPending) {
+          // User logged in without OTP and is unverified
           localStorage.setItem('pending_verification_email', userData.email)
-          toast({ title: 'Verification Required', description: 'Please verify your email before logging in.' })
-          return router.push(`/?unverified=true&email=${encodeURIComponent(userData.email)}`)
+          toast({
+            title: 'Verification Required',
+            description: 'Please verify your email using the OTP code sent to your email.'
+          })
         }
 
         // Clear or set pending email based on verification status
         if (isUserVerified(userData)) {
           localStorage.removeItem('pending_verification_email')
-        } else {
+        } else if (!data.otp) {
           localStorage.setItem('pending_verification_email', userData.email)
         }
 
@@ -125,6 +152,21 @@ const Login = () => {
               placeholder="Enter your password"
               isInvalid={!!errors.password}
               errorMessage={errors.password?.message}
+            />
+          )}
+        />
+        <Controller
+          name="otp"
+          control={control}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              label="OTP Code (Optional)"
+              placeholder="Enter 6-digit OTP if you have one"
+              maxLength={6}
+              isInvalid={!!errors.otp}
+              errorMessage={errors.otp?.message}
+              description="If you received an OTP code, enter it here to verify your email during login."
             />
           )}
         />

@@ -38,16 +38,29 @@ export default function ProfilePage() {
 
   // Account Settings State
   const [accountData, setAccountData] = useState({
-    displayName: '',
-    username: '',
     fullName: '',
     email: '',
-    secondaryEmail: '',
     phone: '',
   })
 
-  // Billing Address State
-  const [billingData, setBillingData] = useState({
+  // Address one (formerly Billing)
+  const [addressOne, setAddressOne] = useState({
+    id: '',
+    firstName: '',
+    lastName: '',
+    company: '',
+    address: '',
+    country: 'Bangladesh',
+    region: '', // State/Division
+    city: 'Dhaka', // Region in API
+    zipCode: '',
+    email: '',
+    phone: '',
+  })
+
+  // Address two (formerly Shipping)
+  const [addressTwo, setAddressTwo] = useState({
+    id: '',
     firstName: '',
     lastName: '',
     company: '',
@@ -60,42 +73,222 @@ export default function ProfilePage() {
     phone: '',
   })
 
-  // Shipping Address State
-  const [shippingData, setShippingData] = useState({
-    firstName: '',
-    lastName: '',
-    company: '',
-    address: '',
-    country: 'Bangladesh',
-    region: '',
-    city: 'Dhaka',
-    zipCode: '',
-    email: '',
-    phone: '',
-  })
+  const [fetchingAddresses, setFetchingAddresses] = useState(false)
+  const [savingAddressOne, setSavingAddressOne] = useState(false)
+  const [savingAddressTwo, setSavingAddressTwo] = useState(false)
+  const [removingAddressOne, setRemovingAddressOne] = useState(false)
+  const [removingAddressTwo, setRemovingAddressTwo] = useState(false)
 
   useEffect(() => {
     if (user) {
       setAccountData(prev => ({
         ...prev,
-        displayName: user.name?.split(' ')[0] || '',
         fullName: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
       }))
+      fetchAddresses()
     }
   }, [user])
+
+  const fetchAddresses = async () => {
+    setFetchingAddresses(true)
+    try {
+      const response = await fetchClient('/v1/addresses')
+      const addresses = response?.data || []
+
+      if (addresses[0]) {
+        const addr = addresses[0]
+        setAddressOne({
+          id: addr.id,
+          firstName: addr.first_name || '',
+          lastName: addr.last_name || '',
+          company: addr.company_name || '',
+          address: addr.address || '',
+          country: addr.country || 'Bangladesh',
+          region: addr.state || 'Dhaka Division',
+          city: addr.region || '',
+          zipCode: addr.zip_code || '',
+          email: addr.email || '',
+          phone: addr.phone || '',
+        })
+      }
+
+      if (addresses[1]) {
+        const addr = addresses[1]
+        setAddressTwo({
+          id: addr.id,
+          firstName: addr.first_name || '',
+          lastName: addr.last_name || '',
+          company: addr.company_name || '',
+          address: addr.address || '',
+          country: addr.country || 'Bangladesh',
+          region: addr.state || 'Dhaka Division',
+          city: addr.region || '',
+          zipCode: addr.zip_code || '',
+          email: addr.email || '',
+          phone: addr.phone || '',
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch addresses', error)
+    } finally {
+      setFetchingAddresses(false)
+    }
+  }
 
   const handleAccountChange = (value: string, id: string) => {
     setAccountData(prev => ({ ...prev, [id]: value }))
   }
 
-  const handleBillingChange = (value: string, id: string) => {
-    setBillingData(prev => ({ ...prev, [id]: value }))
+  const handleAddressOneChange = (value: string, id: string) => {
+    setAddressOne(prev => ({ ...prev, [id]: value }))
   }
 
-  const handleShippingChange = (value: string, id: string) => {
-    setShippingData(prev => ({ ...prev, [id]: value }))
+  const handleAddressTwoChange = (value: string, id: string) => {
+    setAddressTwo(prev => ({ ...prev, [id]: value }))
+  }
+
+  const handleSaveAddressOne = async () => {
+    if (!user) return
+    setSavingAddressOne(true)
+    try {
+      const payload = {
+        first_name: addressOne.firstName,
+        last_name: addressOne.lastName,
+        company_name: addressOne.company,
+        address: addressOne.address,
+        phone: addressOne.phone,
+        region: addressOne.city,
+        state: addressOne.region,
+        zip_code: addressOne.zipCode,
+        country: addressOne.country,
+        email: addressOne.email,
+      }
+
+      const method = addressOne.id ? 'PATCH' : 'POST'
+      const endpoint = addressOne.id ? `/v1/addresses/${addressOne.id}` : '/v1/addresses'
+
+      const response = await fetchClient(endpoint, {
+        method,
+        body: JSON.stringify(payload),
+      })
+
+      if (response?.success || response?.data || response?.id) {
+        toast({ title: 'Success', description: 'Address one updated successfully.' })
+        await fetchAddresses()
+      } else {
+        throw new Error(response?.message || 'Failed to save address.')
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to save address.', variant: 'destructive' })
+    } finally {
+      setSavingAddressOne(false)
+    }
+  }
+
+  const handleSaveAddressTwo = async () => {
+    if (!user) return
+    setSavingAddressTwo(true)
+    try {
+      const payload = {
+        first_name: addressTwo.firstName,
+        last_name: addressTwo.lastName,
+        company_name: addressTwo.company,
+        address: addressTwo.address,
+        phone: addressTwo.phone,
+        region: addressTwo.city,
+        state: addressTwo.region,
+        zip_code: addressTwo.zipCode,
+        country: addressTwo.country,
+        email: addressTwo.email,
+      }
+
+      const method = addressTwo.id ? 'PATCH' : 'POST'
+      const endpoint = addressTwo.id ? `/v1/addresses/${addressTwo.id}` : '/v1/addresses'
+
+      const response = await fetchClient(endpoint, {
+        method,
+        body: JSON.stringify(payload),
+      })
+
+      if (response?.success || response?.data || response?.id) {
+        toast({ title: 'Success', description: 'Address two updated successfully.' })
+        await fetchAddresses()
+      } else {
+        throw new Error(response?.message || 'Failed to save address.')
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to save address.', variant: 'destructive' })
+    } finally {
+      setSavingAddressTwo(false)
+    }
+  }
+
+  const handleRemoveAddressOne = async () => {
+    if (!addressOne.id) return
+    setRemovingAddressOne(true)
+    try {
+      const response = await fetchClient(`/v1/addresses/${addressOne.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response?.success || response?.data) {
+        toast({ title: 'Success', description: 'Address one removed successfully.' })
+        setAddressOne({
+          id: '',
+          firstName: '',
+          lastName: '',
+          company: '',
+          address: '',
+          country: 'Bangladesh',
+          region: '',
+          city: '',
+          zipCode: '',
+          email: '',
+          phone: '',
+        })
+      } else {
+        throw new Error(response?.message || 'Failed to remove address.')
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to remove address.', variant: 'destructive' })
+    } finally {
+      setRemovingAddressOne(false)
+    }
+  }
+
+  const handleRemoveAddressTwo = async () => {
+    if (!addressTwo.id) return
+    setRemovingAddressTwo(true)
+    try {
+      const response = await fetchClient(`/v1/addresses/${addressTwo.id}`, {
+        method: 'DELETE',
+      })
+
+      if (response?.success || response?.data) {
+        toast({ title: 'Success', description: 'Address two removed successfully.' })
+        setAddressTwo({
+          id: '',
+          firstName: '',
+          lastName: '',
+          company: '',
+          address: '',
+          country: 'Bangladesh',
+          region: '',
+          city: '',
+          zipCode: '',
+          email: '',
+          phone: '',
+        })
+      } else {
+        throw new Error(response?.message || 'Failed to remove address.')
+      }
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to remove address.', variant: 'destructive' })
+    } finally {
+      setRemovingAddressTwo(false)
+    }
   }
 
   const handleImageClick = () => fileInputRef.current?.click()
@@ -115,10 +308,12 @@ export default function ProfilePage() {
 
   const handleConfirmUpload = async () => {
     if (!tempFile || !user) return
-    const userId = user.id || user._id
     setUploading(true)
 
     try {
+      console.log('📸 Uploading photo...');
+
+      // Upload the file to get photo_id
       const uploadFormData = new FormData()
       uploadFormData.append('file', tempFile)
 
@@ -127,32 +322,47 @@ export default function ProfilePage() {
         body: uploadFormData,
       })
 
-      const assetId = uploadResult?.data?.asset?.id || uploadResult?.asset?.id
-      const finalImageUrl = uploadResult?.data?.optimized_url || uploadResult?.optimized_url ||
-                          uploadResult?.data?.asset?.secure_url || uploadResult?.asset?.secure_url
+      console.log('✅ Upload result:', uploadResult);
 
-      if (assetId) {
-        const linkFormData = new FormData()
-        linkFormData.append('entity_id', userId)
-        await fetchClient(`/v1/assets/${assetId}`, { method: 'PUT', body: linkFormData })
+      // Extract photo_id from response
+      const photoId = uploadResult?.data?.asset?.id ||
+                      uploadResult?.asset?.id ||
+                      uploadResult?.data?.id ||
+                      uploadResult?.id
+
+      if (!photoId) {
+        throw new Error('Could not extract photo ID from upload response.')
       }
 
-      const response = await fetchClient(`/v1/users/${userId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ image: finalImageUrl }),
+      console.log('🆔 Photo ID:', photoId);
+
+      // Update user photo using /v1/users/photo endpoint
+      const response = await fetchClient('/v1/users/photo', {
+        method: 'POST',
+        body: JSON.stringify({ photo_id: photoId }),
       })
 
-      if (response?.success || response?.data) {
+      console.log('✅ Photo update response:', response);
+
+      if (response?.success || response?.data || response?.message) {
         await refreshProfile()
         setIsImageModalOpen(false)
         setTempFile(null)
         setTempPreviewUrl(null)
-        toast({ title: 'Success', description: 'Profile picture updated.' })
+        toast({
+          title: 'Success',
+          description: response?.message || 'Profile picture updated successfully.'
+        })
       } else {
-        throw new Error(response?.message || 'Upload failed.')
+        throw new Error(response?.message || 'Failed to update profile picture.')
       }
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Upload failed.', variant: 'destructive' })
+      console.error('❌ Upload error:', error)
+      toast({
+        title: 'Upload Failed',
+        description: error.message || 'Something went wrong during upload.',
+        variant: 'destructive'
+      })
     } finally {
       setUploading(false)
     }
@@ -173,9 +383,9 @@ export default function ProfilePage() {
         }),
       })
 
-      if (response?.success || response?.data) {
+      if (response?.success || response?.data || response?.id) {
         await refreshProfile()
-        toast({ title: 'Success', description: response?.message || 'Account settings updated.' })
+        toast({ title: 'Success', description: 'Account settings updated successfully.' })
       } else {
         throw new Error(response?.message || 'Update failed.')
       }
@@ -206,12 +416,12 @@ export default function ProfilePage() {
                 <Avatar
                   src={user?.image || ''}
                   alt="Profile"
-                  className={cn("size-full *:size-full object-cover", (uploading || saving) && "opacity-50")}
+                  className={cn("size-full *:size-full object-cover", uploading && "opacity-50")}
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
                   <Camera className="h-6 w-6 text-white" />
                 </div>
-                {(uploading || saving) && (
+                {uploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                     <Loader2 className="h-6 w-6 animate-spin text-white" />
                   </div>
@@ -223,11 +433,8 @@ export default function ProfilePage() {
             {/* Form Column */}
             <div className="flex-1 space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
-                <TextField label="Display name" value={accountData.displayName} onChange={(v) => handleAccountChange(v, 'displayName')} />
-                <TextField label="Username" value={accountData.username} onChange={(v) => handleAccountChange(v, 'username')} />
                 <TextField label="Full Name" value={accountData.fullName} onChange={(v) => handleAccountChange(v, 'fullName')} />
                 <TextField label="Email" value={accountData.email} isDisabled />
-                <TextField label="Secondary Email" value={accountData.secondaryEmail} onChange={(v) => handleAccountChange(v, 'secondaryEmail')} />
                 <TextField label="Phone Number" value={accountData.phone} onChange={(v) => handleAccountChange(v, 'phone')} />
               </div>
               <div className="flex justify-end">
@@ -279,55 +486,39 @@ export default function ProfilePage() {
         {/* Billing Address */}
         <Card className="border shadow-sm">
           <CardHeader className="border-b px-6 py-4">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider">Billing Address</CardTitle>
+            <CardTitle className="text-sm font-bold uppercase tracking-wider">Address one</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-6">
             <div className="grid gap-4 md:grid-cols-2">
-              <TextField label="First Name" value={billingData.firstName} onChange={(v) => handleBillingChange(v, 'firstName')} />
-              <TextField label="Last Name" value={billingData.lastName} onChange={(v) => handleBillingChange(v, 'lastName')} />
+              <TextField label="First Name" value={addressOne.firstName} onChange={(v) => handleAddressOneChange(v, 'firstName')} />
+              <TextField label="Last Name" value={addressOne.lastName} onChange={(v) => handleAddressOneChange(v, 'lastName')} />
             </div>
-            <TextField label="Company Name (Optional)" value={billingData.company} onChange={(v) => handleBillingChange(v, 'company')} />
-            <TextField label="Address" value={billingData.address} onChange={(v) => handleBillingChange(v, 'address')} />
+            <TextField label="Company Name (Optional)" value={addressOne.company} onChange={(v) => handleAddressOneChange(v, 'company')} />
+            <TextField label="Address" value={addressOne.address} onChange={(v) => handleAddressOneChange(v, 'address')} />
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Country</Label>
-                <select
-                  value={billingData.country}
-                  onChange={(e) => handleBillingChange(e.target.value, 'country')}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                >
-                  <option>Bangladesh</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Region/State</Label>
-                <select
-                  value={billingData.region}
-                  onChange={(e) => handleBillingChange(e.target.value, 'region')}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                >
-                  <option value="">Select...</option>
-                  <option>Dhaka</option>
-                </select>
-              </div>
+              <TextField label="Country" value={addressOne.country} onChange={(v) => handleAddressOneChange(v, 'country')} />
+              <TextField label="Region/State" value={addressOne.region} onChange={(v) => handleAddressOneChange(v, 'region')} />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label className="text-sm font-medium">City</Label>
-                <select
-                  value={billingData.city}
-                  onChange={(e) => handleBillingChange(e.target.value, 'city')}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                >
-                  <option>Dhaka</option>
-                </select>
+                <TextField label="" placeholder="City" value={addressOne.city} onChange={(v) => handleAddressOneChange(v, 'city')} />
               </div>
-              <TextField label="Zip Code" value={billingData.zipCode} onChange={(v) => handleBillingChange(v, 'zipCode')} />
+              <TextField label="Zip Code" value={addressOne.zipCode} onChange={(v) => handleAddressOneChange(v, 'zipCode')} />
             </div>
-            <TextField label="Email" value={billingData.email} onChange={(v) => handleBillingChange(v, 'email')} />
-            <TextField label="Phone Number" value={billingData.phone} onChange={(v) => handleBillingChange(v, 'phone')} />
-            <div className="flex justify-end">
-              <Button className="bg-primary text-white">SAVE CHANGES</Button>
+            <TextField label="Email" value={addressOne.email} onChange={(v) => handleAddressOneChange(v, 'email')} />
+            <TextField label="Phone Number" value={addressOne.phone} onChange={(v) => handleAddressOneChange(v, 'phone')} />
+            <div className="flex justify-end gap-3">
+              {addressOne.id && (
+                <Button variant="outline" onClick={handleRemoveAddressOne} disabled={removingAddressOne} className="text-destructive border-destructive hover:bg-danger hover:text-white">
+                  {removingAddressOne && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Remove Address
+                </Button>
+              )}
+              <Button onClick={handleSaveAddressOne} disabled={savingAddressOne || removingAddressOne} className="bg-primary text-white">
+                {savingAddressOne && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                SAVE CHANGES
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -335,55 +526,39 @@ export default function ProfilePage() {
         {/* Shipping Address */}
         <Card className="border shadow-sm">
           <CardHeader className="border-b px-6 py-4">
-            <CardTitle className="text-sm font-bold uppercase tracking-wider">Shipping Address</CardTitle>
+            <CardTitle className="text-sm font-bold uppercase tracking-wider">Address two</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 p-6">
             <div className="grid gap-4 md:grid-cols-2">
-              <TextField label="First Name" value={shippingData.firstName} onChange={(v) => handleShippingChange(v, 'firstName')} />
-              <TextField label="Last Name" value={shippingData.lastName} onChange={(v) => handleShippingChange(v, 'lastName')} />
+              <TextField label="First Name" value={addressTwo.firstName} onChange={(v) => handleAddressTwoChange(v, 'firstName')} />
+              <TextField label="Last Name" value={addressTwo.lastName} onChange={(v) => handleAddressTwoChange(v, 'lastName')} />
             </div>
-            <TextField label="Company Name (Optional)" value={shippingData.company} onChange={(v) => handleShippingChange(v, 'company')} />
-            <TextField label="Address" value={shippingData.address} onChange={(v) => handleShippingChange(v, 'address')} />
+            <TextField label="Company Name (Optional)" value={addressTwo.company} onChange={(v) => handleAddressTwoChange(v, 'company')} />
+            <TextField label="Address" value={addressTwo.address} onChange={(v) => handleAddressTwoChange(v, 'address')} />
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Country</Label>
-                <select
-                  value={shippingData.country}
-                  onChange={(e) => handleShippingChange(e.target.value, 'country')}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                >
-                  <option>Bangladesh</option>
-                </select>
-              </div>
-              <div className="space-y-1">
-                <Label className="text-sm font-medium">Region/State</Label>
-                <select
-                  value={shippingData.region}
-                  onChange={(e) => handleShippingChange(e.target.value, 'region')}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                >
-                  <option value="">Select...</option>
-                  <option>Dhaka</option>
-                </select>
-              </div>
+              <TextField label="Country" value={addressTwo.country} onChange={(v) => handleAddressTwoChange(v, 'country')} />
+              <TextField label="Region/State" value={addressTwo.region} onChange={(v) => handleAddressTwoChange(v, 'region')} />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1">
                 <Label className="text-sm font-medium">City</Label>
-                <select
-                  value={shippingData.city}
-                  onChange={(e) => handleShippingChange(e.target.value, 'city')}
-                  className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none"
-                >
-                  <option>Dhaka</option>
-                </select>
+                <TextField label="" placeholder="City" value={addressTwo.city} onChange={(v) => handleAddressTwoChange(v, 'city')} />
               </div>
-              <TextField label="Zip Code" value={shippingData.zipCode} onChange={(v) => handleShippingChange(v, 'zipCode')} />
+              <TextField label="Zip Code" value={addressTwo.zipCode} onChange={(v) => handleAddressTwoChange(v, 'zipCode')} />
             </div>
-            <TextField label="Email" value={shippingData.email} onChange={(v) => handleShippingChange(v, 'email')} />
-            <TextField label="Phone Number" value={shippingData.phone} onChange={(v) => handleShippingChange(v, 'phone')} />
-            <div className="flex justify-end">
-              <Button className="bg-primary text-white">SAVE CHANGES</Button>
+            <TextField label="Email" value={addressTwo.email} onChange={(v) => handleAddressTwoChange(v, 'email')} />
+            <TextField label="Phone Number" value={addressTwo.phone} onChange={(v) => handleAddressTwoChange(v, 'phone')} />
+            <div className="flex justify-end gap-3">
+              {addressTwo.id && (
+                <Button variant="outline" onClick={handleRemoveAddressTwo} disabled={removingAddressTwo} className="text-destructive border-destructive hover:bg-danger hover:text-white">
+                  {removingAddressTwo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Remove Address
+                </Button>
+              )}
+              <Button onClick={handleSaveAddressTwo} disabled={savingAddressTwo || removingAddressTwo} className="bg-primary text-white">
+                {savingAddressTwo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                SAVE CHANGES
+              </Button>
             </div>
           </CardContent>
         </Card>

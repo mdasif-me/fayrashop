@@ -87,7 +87,7 @@ export default function Products() {
             <CardContent className="relative h-full p-5">
               <div className="flex gap-2">
                 <Badge className="bg-yellow-400 text-xs font-semibold text-black">32% OFF</Badge>
-                <Badge className="bg-red-500 text-xs font-semibold text-white">HOT</Badge>
+                <Badge className="bg-danger text-xs font-semibold text-white">HOT</Badge>
               </div>
 
               <div className="mt-4 flex items-center justify-center">

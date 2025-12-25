@@ -105,7 +105,7 @@ export default function OffersPage() {
           <div className="mb-6 flex items-center gap-3">
             <Zap className="h-8 w-8 text-yellow-500" />
             <h2 className="text-3xl font-bold">Flash Deals</h2>
-            <Badge className="animate-pulse bg-red-500 text-white">LIMITED TIME</Badge>
+            <Badge className="animate-pulse bg-danger text-white">LIMITED TIME</Badge>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -115,7 +115,7 @@ export default function OffersPage() {
                 <Card key={deal.id} className="group transition-all duration-300 hover:shadow-xl">
                   <CardContent className="p-4">
                     <div className="relative mb-4">
-                      <Badge className="absolute top-2 left-2 z-10 bg-red-500 text-white">
+                      <Badge className="absolute top-2 left-2 z-10 bg-danger text-white">
                         -{deal.discount}%
                       </Badge>
                       <div className="relative h-48 w-full overflow-hidden rounded-lg">

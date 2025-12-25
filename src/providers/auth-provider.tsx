@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { fetchClient, logoutClient, refreshAuthToken } from '@/lib/api-config'
+import { fetchClient, logoutClient, refreshAuthToken, setStoredToken, getStoredToken, getStoredRefreshToken } from '@/lib/api-config'
 
 interface User {
   id: string
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const refreshProfile = async () => {
-    if (!localStorage.getItem('token')) return setUser(null), setLoading(false)
+    if (!getStoredToken()) return setUser(null), setLoading(false)
 
     try {
       let response
@@ -67,8 +67,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         logout()
       }
-    } catch (error) {
-      console.error('Profile refresh failed', error)
+    } catch (error: any) {
+      if (error.message === 'Session expired') {
+        logout()
+      } else {
+        console.error('Profile refresh failed', error)
+      }
     } finally {
       setLoading(false)
     }
@@ -77,8 +81,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        let token = localStorage.getItem('token')
-        const refreshToken = localStorage.getItem('refresh_token')
+        let token = getStoredToken()
+        const refreshToken = getStoredRefreshToken()
         const storedUser = localStorage.getItem('user')
 
         if (!token && refreshToken) {
@@ -103,10 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userData = processUserData(rawData)
     if (!userData) return
 
-    localStorage.setItem('token', token)
-    if (refreshToken) localStorage.setItem('refresh_token', refreshToken)
+    setStoredToken(token, refreshToken)
     localStorage.setItem('user', JSON.stringify(userData))
-    document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
     setUser(userData)
     setLoading(false)
   }

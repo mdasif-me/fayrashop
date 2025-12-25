@@ -196,7 +196,7 @@ export default function SecurityPage() {
             <button
               onClick={() => setIsDeleteModalOpen(true)}
               disabled={isDeleting}
-              className="inline-flex items-center gap-2 rounded-md bg-red-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-destructive/90 active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-md bg-danger px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-destructive/90 active:scale-95 disabled:opacity-50"
             >
               {isDeleting ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -236,7 +236,7 @@ export default function SecurityPage() {
               variant="destructive"
               onClick={handleDeleteAccount}
               disabled={isDeleting}
-              className="w-full bg-destructive text-white sm:w-auto bg-red-500"
+              className="w-full bg-destructive text-white sm:w-auto bg-danger"
             >
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm Delete
