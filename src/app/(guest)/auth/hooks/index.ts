@@ -3,6 +3,8 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '../api'
 import { apiClient } from '@/lib/api-client'
 import { toast } from 'sonner'
+import { IAPIRes } from '@/interfaces/api-res.interface'
+import { IAuthorizationUser } from '../interface'
 
 export const useLogin = () => {
   const queryClient = useQueryClient()
@@ -12,15 +14,25 @@ export const useLogin = () => {
     mutationFn: authApi.login,
     onSuccess: ({ data }) => {
       if (data?.message) {
-        toast.warning('Warning', {
-          description: data.message,
+        // User needs verification
+        apiClient.setTempAuth({
+          email: data.email,
+          isLogin: true,
+          userData: data,
+        })
+        toast.info('Info', {
+          description: 'Please verify your email with OTP',
         })
         push('/auth?mode=verify')
       } else {
+        // User verified, complete login
         apiClient.setToken(data?.token ?? '')
         const { token, ...userDataWithoutToken } = data || {}
         apiClient.setUser(userDataWithoutToken)
         queryClient.setQueryData(['user'], userDataWithoutToken)
+        toast.success('Success', {
+          description: 'Logged in successfully',
+        })
         push('/')
       }
     },
@@ -36,45 +48,73 @@ export const useRegister = () => {
   const { push } = useRouter()
   return useMutation({
     mutationFn: authApi.register,
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Store registration data for OTP verification
+      apiClient.setTempAuth({
+        email: (data.data as any).email,
+        isRegister: true,
+        userData: data.data,
+      })
+      toast.info('Info', {
+        description: 'Please verify your email with OTP',
+      })
       push('/auth?mode=verify')
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message,
+      })
     },
   })
 }
 
-// export const useVerify = () => {
-//   const [, setUser] = useCookieStorage<IUser | null>('user', null, {
-//     path: '/',
-//   })
-//   const queryClient = useQueryClient()
-//   const { push } = useRouter()
+export const useVerify = () => {
+  const queryClient = useQueryClient()
+  const { push } = useRouter()
 
-//   return useMutation({
-//     mutationFn: authApi.verify,
-//     onSuccess: async (data) => {
-//       apiClient.setToken(data.access_token)
+  return useMutation({
+    mutationFn: authApi.verify,
+    onSuccess: (response: IAPIRes<IAuthorizationUser>) => {
+      const authData = response?.data
+      if (!authData) {
+        toast.error('Error', {
+          description: 'Invalid response from server',
+        })
+        return
+      }
 
-//       try {
-//         const userResponse = await authApi.getUserProfile()
-//         const user = userResponse.edge.data
-//         setUser(user)
-//         queryClient.setQueryData(['user'], user)
-//         push('/')
-//       } catch (error) {
-//         toastManager.add({
-//           title: 'Error',
-//           description: error as string,
-//           type: 'error',
-//         })
-//         push('/')
-//       }
-//     },
-//   })
-// }
+      apiClient.removeTempAuth()
+      apiClient.setToken(authData.token ?? '')
+      const { token, ...userDataWithoutToken } = authData
+      apiClient.setUser(userDataWithoutToken)
+      queryClient.setQueryData(['user'], userDataWithoutToken)
+
+      toast.success('Success', {
+        description: 'Email verified successfully',
+      })
+      push('/')
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message,
+      })
+    },
+  })
+}
 
 export const useResend = () => {
   return useMutation({
     mutationFn: authApi.resend,
+    onSuccess: () => {
+      toast.success('Success', {
+        description: 'OTP sent to your email',
+      })
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message,
+      })
+    },
   })
 }
 

@@ -45,6 +45,28 @@ class ApiClient {
     document.cookie = 'user=; path=/; max-age=0'
   }
 
+  setTempAuth(data: unknown) {
+    // Store temporary auth data for OTP verification
+    const dataString = JSON.stringify(data)
+    document.cookie = `tempAuth=${encodeURIComponent(dataString)}; path=/; max-age=3600` // 1 hour
+  }
+
+  getTempAuth(): unknown | null {
+    const match = document.cookie.match(new RegExp('(^| )tempAuth=([^;]+)'))
+    if (match) {
+      try {
+        return JSON.parse(decodeURIComponent(match[2]))
+      } catch {
+        return null
+      }
+    }
+    return null
+  }
+
+  removeTempAuth() {
+    document.cookie = 'tempAuth=; path=/; max-age=0'
+  }
+
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
     const token = this.getToken()

@@ -1,9 +1,8 @@
 'use client'
 
 import { Tab, TabList, TabPanel, Tabs } from '@/components/ui/tabs'
-import { Login, Register } from './components'
+import { Login, Register, VerifyOTP } from './components'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { VerifyOTP } from './components/verify'
 import { useState, useEffect } from 'react'
 
 export default function AuthSwitcher() {

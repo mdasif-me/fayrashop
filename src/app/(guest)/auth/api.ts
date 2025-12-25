@@ -17,7 +17,7 @@ export const authApi = {
   },
 
   verify: (data: VerifySchemaType) => {
-    return apiClient.post<IAPIRes<IUser>>('/auth/login', data)
+    return apiClient.post<IAPIRes<IAuthorizationUser>>('/auth/login', data)
   },
 
   getUserProfile: () => {

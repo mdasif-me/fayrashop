@@ -1,19 +1,62 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import CreativeOTPInput from '@/components/ui/creative-otp-input'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useVerify, useResend } from '../hooks'
+import { apiClient } from '@/lib/api-client'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 export function VerifyOTP() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [email, setEmail] = useState<string>('')
+  const router = useRouter()
+
+  const { mutate: verify, isPending: isVerifying } = useVerify()
+  const { mutate: resend, isPending: isResending } = useResend()
+
+  useEffect(() => {
+    const tempAuth = apiClient.getTempAuth() as any
+    if (!tempAuth?.email) {
+      toast.error('Error', {
+        description: 'Please login or register first',
+      })
+      router.push('/auth')
+      return
+    }
+    setEmail(tempAuth.email)
+  }, [router])
 
   const handleComplete = (otp: string) => {
-    console.log('Completed OTP:', otp)
-    if (otp === '123456') {
-      setStatus('success')
-    } else {
+    setStatus('idle')
+    const tempAuth = apiClient.getTempAuth() as any
+
+    if (!tempAuth?.email) {
       setStatus('error')
+      return
     }
+
+    verify({
+      email: tempAuth.email,
+      password: tempAuth.userData?.password || '',
+      otp,
+    })
+  }
+
+  const handleResend = () => {
+    const tempAuth = apiClient.getTempAuth() as any
+    if (!tempAuth?.email) {
+      toast.error('Error', {
+        description: 'Email not found',
+      })
+      return
+    }
+
+    resend({
+      email: tempAuth.email,
+      password: tempAuth.userData?.password || '',
+    })
   }
 
   return (
@@ -27,7 +70,7 @@ export function VerifyOTP() {
           Enter Verification Code
         </motion.h3>
         <p className="text-muted-foreground dark:text-muted-foreground/80 text-sm">
-          We&apos;ve sent a code to your email
+          We&apos;ve sent a code to <strong>{email}</strong>
         </p>
       </div>
 
@@ -37,6 +80,7 @@ export function VerifyOTP() {
           variant="default"
           status={status}
           onComplete={handleComplete}
+          disabled={isVerifying}
         />
         <AnimatePresence>
           {status === 'error' && (
@@ -70,12 +114,13 @@ export function VerifyOTP() {
       >
         Didn&apos;t receive the code?{' '}
         <motion.button
-          className="text-primary dark:text-primary/90 hover:underline"
-          onClick={() => setStatus('idle')}
+          className="text-primary dark:text-primary/90 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleResend}
+          disabled={isResending}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          Resend
+          {isResending ? 'Sending...' : 'Resend'}
         </motion.button>
       </motion.p>
     </div>
