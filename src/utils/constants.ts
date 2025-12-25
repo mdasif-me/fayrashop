@@ -36,13 +36,21 @@ export const API_ROUTES = {
     FORGOT_PASSWORD: '/v1/auth/forgot-password',
     RESET_PASSWORD: '/v1/auth/reset-password',
     VERIFY_EMAIL: '/v1/auth/verify-email',
+    RESEND_VERIFICATION: '/v1/auth/resend-verification',
     PROFILE: '/v1/auth/profile',
   },
   USER: {
-    PROFILE: '/v1/users/profile', // Keeping this if there's a specific user profile endpoint differing from auth profile
+    PROFILE: '/v1/users/profile',
     UPDATE: '/v1/users', // usually /v1/users/:id
     DELETE: '/v1/users', // usually /v1/users/:id
     CHANGE_PASSWORD: '/v1/users/change-password',
+    REQUEST_OTP: '/v1/users/request-otp',
+    VERIFY_OTP: '/v1/users/verify-otp',
+    FORGOT_PASSWORD: '/v1/users/forgot-password',
+    PHOTO: '/v1/users/photo',
+  },
+  EMAIL: {
+    SEND: '/v1/email/send',
   },
   UPLOAD: {
     IMAGE: '/api/upload/image',

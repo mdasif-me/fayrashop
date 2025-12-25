@@ -20,7 +20,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
         <RootWrapper>
-          <Suspense fallback={<div></div>}>
+          <Suspense fallback={null}>
             <Banner />
           </Suspense>
           <AppNavbar />

@@ -3,24 +3,34 @@ export const API_BASE_URL =
     ? '/api/proxy'
     : process.env.NEXT_PUBLIC_API_URL || 'https://fayrashop-ssr.vercel.app'
 
-function getStoredToken() {
+export function getStoredToken() {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('token')
 }
 
-function getStoredRefreshToken() {
+export function getStoredRefreshToken() {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('refresh_token')
 }
 
-function setStoredToken(token: string, refreshToken?: string) {
+export function setStoredToken(token: string, refreshToken?: string) {
   if (typeof window === 'undefined') return
   localStorage.setItem('token', token)
-  document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax`
+  document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax; Secure`
 
   if (refreshToken) {
     localStorage.setItem('refresh_token', refreshToken)
+    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=604800; SameSite=Lax; Secure`
   }
+}
+
+export function clearStoredAuth() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('user')
+  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
+  document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
 }
 
 export async function refreshAuthToken() {
@@ -28,7 +38,7 @@ export async function refreshAuthToken() {
   const refreshToken = getStoredRefreshToken()
 
   if (!refreshToken) {
-    throw new Error('No refresh token available')
+    return null
   }
 
   const response = await fetch(url, {
@@ -76,15 +86,19 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   const token = getStoredToken()
 
   const method = options.method?.toUpperCase() || 'GET'
-  const isAuthRoute = endpoint.includes('/auth/login') || endpoint.includes('/auth/register')
+  const isAuthRoute =
+    endpoint.includes('/auth/login') ||
+    endpoint.includes('/auth/register') ||
+    endpoint.includes('/auth/verify-otp') ||
+    endpoint.includes('/users/request-otp') ||
+    endpoint.includes('/users/verify-otp') ||
+    endpoint.includes('/users/forgot-password')
 
   const headers: HeadersInit = {
     ...(token && !isAuthRoute && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   }
 
-  // Only add Content-Type if there's a body or it's a mutation method
-  // and it's NOT a FormData object (fetch handles FormData automatically)
   if (options.body || ['POST', 'PUT', 'PATCH'].includes(method)) {
     const isFormData = options.body instanceof FormData
     if (!isFormData && !(headers as any)['Content-Type']) {
@@ -109,15 +123,13 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   if (!response.ok) {
     if (!_retried && (response.status === 401 || response.status === 403) && !isAuthRoute) {
       try {
-        await refreshAuthToken()
+        const newToken = await refreshAuthToken()
+        if (!newToken) {
+          throw new Error('Session expired')
+        }
         return fetchClient(endpoint, options, true)
       } catch (refreshError) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('token')
-          localStorage.removeItem('refresh_token')
-          localStorage.removeItem('user')
-          document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
-        }
+        clearStoredAuth()
         throw refreshError
       }
     }
@@ -134,8 +146,6 @@ export async function logoutClient() {
   const token = getStoredToken()
   try {
     if (token) {
-      // The user specifically requested /auth/logout?token=...
-      // We'll try it via our proxy which adds /v1 if needed, or hit the absolute path
       await fetch(`${API_BASE_URL}/v1/auth/logout?token=${token}`, {
         method: 'GET',
       })
@@ -143,11 +153,8 @@ export async function logoutClient() {
   } catch (error) {
     console.error('API Logout failed', error)
   } finally {
+    clearStoredAuth()
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
-      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT'
       window.location.href = '/'
     }
   }

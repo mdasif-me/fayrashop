@@ -1,8 +1,7 @@
 export enum ERole {
   USER = 'CUSTOMER',
   ADMIN = 'ADMIN',
-  SELLER = 'SELLER',
-  MANAGER = 'MANAGER',
+  MODERATOR = 'MODERATOR',
 }
 
 export const ROLES = Object.values(ERole)

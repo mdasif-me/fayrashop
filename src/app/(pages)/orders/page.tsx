@@ -81,7 +81,7 @@ const statusConfig = {
   processing: { label: 'Processing', color: 'bg-blue-500', icon: Package },
   shipped: { label: 'Shipped', color: 'bg-purple-500', icon: Truck },
   delivered: { label: 'Delivered', color: 'bg-green-500', icon: CheckCircle },
-  cancelled: { label: 'Cancelled', color: 'bg-red-500', icon: XCircle },
+  cancelled: { label: 'Cancelled', color: 'bg-danger', icon: XCircle },
 }
 
 export default function OrdersPage() {

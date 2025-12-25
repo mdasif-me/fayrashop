@@ -16,6 +16,7 @@ export interface AuthUser {
 export interface SignInCredentials {
   email: string
   password: string
+  otp?: string
   rememberMe?: boolean
 }
 
@@ -79,4 +80,13 @@ export interface SocialAuthProvider {
   name: string
   icon: React.ComponentType<{ className?: string }>
   color: string
+}
+
+export interface OtpVerificationRequest {
+  email: string
+  otp: string
+}
+
+export interface OtpRequestPayload {
+  email: string
 }

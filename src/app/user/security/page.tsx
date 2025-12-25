@@ -9,10 +9,20 @@ import { fetchClient } from '@/lib/api-config'
 import { useAuth } from '@/providers/auth-provider'
 import { useToast } from '@/hooks/use-toast'
 
+import {
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
+} from '@/components/ui/modal'
+
 export default function SecurityPage() {
   const { user, logout } = useAuth()
   const { toast } = useToast()
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -72,18 +82,10 @@ export default function SecurityPage() {
       return
     }
 
-    if (
-      !confirm(
-        'Are you sure you want to permanently delete your account? This action cannot be undone.'
-      )
-    ) {
-      return
-    }
-
     setIsDeleting(true)
     try {
-      console.log('Attempting to delete account for user:', userId)
-      await fetchClient(`/v1/users/${userId}`, {
+      const url = `/v1/users/${userId}`
+      await fetchClient(url, {
         method: 'DELETE',
       })
 
@@ -92,10 +94,8 @@ export default function SecurityPage() {
         description: 'Your account has been removed successfully.',
       })
 
-      // Use the logout function which handles storage cleanup and redirection
       await logout()
     } catch (error: any) {
-      console.error('Account deletion error:', error)
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete account. Please try again later.',
@@ -103,6 +103,7 @@ export default function SecurityPage() {
       })
     } finally {
       setIsDeleting(false)
+      setIsDeleteModalOpen(false)
     }
   }
 
@@ -193,9 +194,9 @@ export default function SecurityPage() {
               <CardDescription>Irreversible actions for your account.</CardDescription>
             </div>
             <button
-              onClick={handleDeleteAccount}
+              onClick={() => setIsDeleteModalOpen(true)}
               disabled={isDeleting}
-              className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-md bg-danger px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-destructive/90 active:scale-95 disabled:opacity-50"
             >
               {isDeleting ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -212,6 +213,37 @@ export default function SecurityPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Delete Account Modal */}
+      <Modal isOpen={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
+        <ModalContent isBlurred role="alertdialog">
+          <ModalHeader className="flex flex-col items-center text-center">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <AlertTriangle className="h-6 w-6 text-destructive text-red-500" />
+            </div>
+            <ModalTitle className="text-xl font-bold text-red-500">Delete Account</ModalTitle>
+          </ModalHeader>
+          <ModalBody className="py-4 text-center">
+            <p className="text-base font-medium text-foreground">
+              Are you sure you want to permanently delete your account? This action cannot be undone.
+            </p>
+          </ModalBody>
+          <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-center">
+            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting}
+              className="w-full bg-destructive text-white sm:w-auto bg-danger"
+            >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm Delete
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </div>
   )
 }

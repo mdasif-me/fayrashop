@@ -1,21 +1,23 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { TicketPercent, XIcon, Mail, RefreshCw } from 'lucide-react'
+import { TicketPercent, XIcon, Mail, ArrowRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import Timer from '../../ui/timer'
 import { fetchClient } from '@/lib/api-config'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/providers/auth-provider'
+import { cn } from '@/lib/utils'
+import { isUserPending, isUserVerified } from '@/lib/auth-utils'
 
 export default function Banner() {
-  const { user, loading } = useAuth()
+  const { user, loading, refreshProfile } = useAuth()
   const [isVisible, setIsVisible] = useState(true)
   const [mounted, setMounted] = useState(false)
-  const [isResending, setIsResending] = useState(false)
+  const router = useRouter()
 
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -25,83 +27,120 @@ export default function Banner() {
     setMounted(true)
   }, [])
 
-  const isHome = pathname === '/'
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const urlEmail = searchParams.get('email')
     const urlRegistered = searchParams.get('registered') === 'true'
+    const urlUnverified = searchParams.get('unverified') === 'true'
 
-    if (urlRegistered && urlEmail) {
+    if ((urlRegistered || urlUnverified) && urlEmail) {
       localStorage.setItem('pending_verification_email', urlEmail)
       setPendingEmail(urlEmail)
     } else {
       const storedEmail = localStorage.getItem('pending_verification_email')
-      setPendingEmail(storedEmail)
+      if (storedEmail) {
+        setPendingEmail(storedEmail)
+      }
     }
   }, [searchParams])
 
+  // Determine if the current user is explicitly verified
+  const isVerified = isUserVerified(user)
+
+  // Clear pending email from storage if the user is verified
+  useEffect(() => {
+    if (isVerified && typeof window !== 'undefined') {
+      localStorage.removeItem('pending_verification_email')
+      setPendingEmail(null)
+    }
+  }, [isVerified])
+
   // Show verification message if user status is PENDING (logged in)
   // or if they just registered (not logged in yet)
-  const showVerificationMessage = user?.status === 'PENDING'
+  // or if the logged-in user's email matches the pending verification email in localStorage
+  // BUT ONLY if they are not already verified
+  const showVerificationMessage =
+    !isVerified &&
+    (isUserPending(user) || (!!user && !!pendingEmail && user.email === pendingEmail))
+
   const isRegistrationSuccess = !!pendingEmail && !user
+  const isVerificationBanner = showVerificationMessage || isRegistrationSuccess
   const userEmail = user?.email || pendingEmail || ''
 
-  const handleResendVerification = async () => {
-    setIsResending(true)
-    try {
-      await fetchClient('/v1/auth/resend-verification', {
-        method: 'POST',
-        body: JSON.stringify({ email: userEmail }),
-      })
+  useEffect(() => {
+    if (!isVerificationBanner || !user) return
 
-      toast({
-        title: 'Verification Email Sent',
-        description: 'Please check your email inbox.',
-      })
-    } catch (error) {
+    // Poll for status updates every 30 seconds if the user is logged in but unverified
+    const interval = setInterval(async () => {
+      try {
+        await refreshProfile()
+      } catch (e) {
+        console.error('Periodic profile refresh error:', e)
+      }
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [isVerificationBanner, user, refreshProfile])
+
+  const handleGoToOtpPage = () => {
+    if (!userEmail) {
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to resend verification email',
+        description: 'Email address not found. Please try registering again.',
         variant: 'destructive',
       })
-    } finally {
-      setIsResending(false)
+      return
     }
+
+    router.push(`/auth/verify-otp?email=${encodeURIComponent(userEmail)}`)
   }
 
-  if (!isVisible) return null
+  // If it's a verification message, we want it to be ALWAYS visible.
+  // It ignores the isVisible state to ensure it cannot be closed or hidden.
+  const shouldShow = isVerificationBanner || isVisible
+
+  if (!mounted || !shouldShow) return null
 
   return (
-    <div className="bg-muted/70 dark:bg-accent/70 text-foreground px-4 py-3">
+    <div
+      suppressHydrationWarning
+      className={cn(
+        'text-foreground px-4 py-3 transition-colors',
+        isVerificationBanner
+          ? 'bg-yellow-500/10 dark:bg-yellow-500/20 border-b border-yellow-500/20'
+          : 'bg-muted/70 dark:bg-accent/70'
+      )}
+    >
       <div className="container mx-auto flex gap-2 md:items-center">
         <div className="flex grow gap-3 md:items-center">
           <div
-            className="bg-primary/15 hidden size-9 shrink-0 items-center justify-center rounded-full max-md:mt-0.5 md:flex"
+            className={cn(
+              'hidden size-9 shrink-0 items-center justify-center rounded-full max-md:mt-0.5 md:flex',
+              isVerificationBanner ? 'bg-yellow-500/20' : 'bg-primary/15'
+            )}
             aria-hidden="true"
           >
-            {showVerificationMessage || isRegistrationSuccess ? (
-              <Mail className="opacity-80" size={16} />
+            {isVerificationBanner ? (
+              <Mail className="text-yellow-600 opacity-80" size={16} />
             ) : (
               <TicketPercent className="opacity-80" size={16} />
             )}
           </div>
+
           <div className="flex grow flex-col justify-between gap-3 md:flex-row md:items-center">
             <div className="space-y-0.5">
-              {showVerificationMessage ? (
+              {isVerificationBanner ? (
                 <>
-                  <p className="text-sm font-medium">Email Verification Required</p>
-                  <p className="text-muted-foreground text-sm">
-                    Please check your email ({userEmail}) to verify your account. You won't be able
-                    to access all features until your email is verified.
+                  <p className="text-sm font-medium">
+                    {showVerificationMessage ? 'Email Verification Required' : 'Verification Required!'}
                   </p>
-                </>
-              ) : isRegistrationSuccess ? (
-                <>
-                  <p className="text-sm font-medium">Verification Required!</p>
                   <p className="text-muted-foreground text-sm">
-                    We&apos;ve sent a verification link to {userEmail}. Please verify your account
-                    before logging in.
+                    {showVerificationMessage
+                      ? `Please enter the OTP code sent to ${userEmail} to verify your account. You won't be able to access all features until your email is verified.`
+                      : `We've sent an OTP code to ${userEmail}. Please enter the code to verify your account.`}
                   </p>
                 </>
               ) : (
@@ -113,49 +152,44 @@ export default function Banner() {
                 </>
               )}
             </div>
-            {showVerificationMessage || isRegistrationSuccess ? (
+
+            {isVerificationBanner ? (
               <Button
                 size="sm"
-                className="bg-primary text-primary-foreground hover:bg-primary/90 border-none text-sm"
-                onClick={handleResendVerification}
-                disabled={isResending}
+                className="bg-yellow-600 text-white hover:bg-yellow-700 border-none text-sm"
+                onClick={handleGoToOtpPage}
               >
-                {isResending ? (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Resend Email
-                  </>
-                )}
+                <ArrowRight className="mr-2 h-4 w-4" />
+                Enter OTP Code
               </Button>
-            ) : !isRegistrationSuccess ? (
+            ) : (
               <div className="flex gap-3 max-md:flex-wrap">
                 <Timer />
                 <Button size="sm" className="text-sm">
                   Buy now
                 </Button>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="group -my-1.5 -me-2 size-9 shrink-0 p-0"
-          onClick={() => setIsVisible(false)}
-          aria-label="Close banner"
-        >
-          <XIcon
-            size={20}
-            className="opacity-60 transition-opacity group-hover:opacity-100"
-            aria-hidden="true"
-          />
-        </Button>
+
+        {!isVerificationBanner && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="group -my-1.5 -me-2 size-9 shrink-0 p-0"
+            onClick={() => setIsVisible(false)}
+            aria-label="Close banner"
+          >
+            <XIcon
+              size={20}
+              className="opacity-60 transition-opacity group-hover:opacity-100"
+              aria-hidden="true"
+            />
+          </Button>
+        )}
       </div>
+
     </div>
   )
 }

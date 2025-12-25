@@ -43,7 +43,7 @@ const brands = [
 ]
 
 const colors = [
-  { id: 'red', label: 'Red', color: 'bg-red-500' },
+  { id: 'red', label: 'Red', color: 'bg-danger' },
   { id: 'orange', label: 'Orange', color: 'bg-orange-500' },
   { id: 'blue', label: 'Blue', color: 'bg-blue-500' },
   { id: 'black', label: 'Black', color: 'bg-black' },
@@ -338,7 +338,7 @@ export default function ProductList() {
                         />
                       </Link>
                       {product.isNew && (
-                        <Badge className="absolute -top-4 -left-2 bg-red-500 text-xs text-white hover:bg-red-600">
+                        <Badge className="absolute -top-4 -left-2 bg-danger text-xs text-white hover:bg-red-600">
                           New
                         </Badge>
                       )}
