@@ -11,7 +11,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [billingAddress, setBillingAddress] = useState<any>(null)
   const [loadingAddress, setLoadingAddress] = useState(false)
 
@@ -30,11 +30,19 @@ export default function DashboardPage() {
         setLoadingAddress(false)
       }
     }
-    fetchAddress()
-  }, [])
+    if (user) fetchAddress()
+  }, [user])
+
+  if (authLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Hello, {user?.name || 'User'}</h1>
         <p className="text-muted-foreground text-sm max-w-lg">

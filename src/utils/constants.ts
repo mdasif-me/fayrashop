@@ -1,12 +1,12 @@
 // Application constants
 
 export const APP_CONFIG = {
-  name: 'Next.js Boilerplate',
-  description: 'A comprehensive Next.js boilerplate with modern tooling',
-  version: '1.0.0',
-  author: 'Your Name',
+  name: 'FayraShop',
+  description: 'Premium Ecommerce Experience',
+  version: '1.2.0',
+  author: 'MD Asif',
   url: process.env.NEXT_PUBLIC_APP_URL,
-  email: 'hello@example.com',
+  email: 'support@fayrashop.com',
 } as const
 
 export const ROUTES = {
@@ -35,8 +35,6 @@ export const API_ROUTES = {
     REFRESH: '/v1/auth/refresh',
     FORGOT_PASSWORD: '/v1/auth/forgot-password',
     RESET_PASSWORD: '/v1/auth/reset-password',
-    VERIFY_EMAIL: '/v1/auth/verify-email',
-    RESEND_VERIFICATION: '/v1/auth/resend-verification',
     PROFILE: '/v1/auth/profile',
   },
   USER: {

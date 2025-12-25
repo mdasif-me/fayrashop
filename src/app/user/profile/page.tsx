@@ -149,33 +149,34 @@ export default function ProfilePage() {
     setAddressTwo(prev => ({ ...prev, [id]: value }))
   }
 
-  const handleSaveAddressOne = async () => {
+  const handleSaveAddress = async (type: 'one' | 'two') => {
     if (!user) return
-    setSavingAddressOne(true)
+    const isOne = type === 'one'
+    const setSaving = isOne ? setSavingAddressOne : setSavingAddressTwo
+    const addressData = isOne ? addressOne : addressTwo
+
+    setSaving(true)
     try {
       const payload = {
-        first_name: addressOne.firstName,
-        last_name: addressOne.lastName,
-        company_name: addressOne.company,
-        address: addressOne.address,
-        phone: addressOne.phone,
-        region: addressOne.city,
-        state: addressOne.region,
-        zip_code: addressOne.zipCode,
-        country: addressOne.country,
-        email: addressOne.email,
+        first_name: addressData.firstName,
+        last_name: addressData.lastName,
+        company_name: addressData.company,
+        address: addressData.address,
+        phone: addressData.phone,
+        region: addressData.city,
+        state: addressData.region,
+        zip_code: addressData.zipCode,
+        country: addressData.country,
+        email: addressData.email,
       }
 
-      const method = addressOne.id ? 'PATCH' : 'POST'
-      const endpoint = addressOne.id ? `/v1/addresses/${addressOne.id}` : '/v1/addresses'
+      const method = addressData.id ? 'PATCH' : 'POST'
+      const endpoint = addressData.id ? `/v1/addresses/${addressData.id}` : '/v1/addresses'
 
-      const response = await fetchClient(endpoint, {
-        method,
-        body: JSON.stringify(payload),
-      })
+      const response = await fetchClient(endpoint, { method, body: JSON.stringify(payload) })
 
       if (response?.success || response?.data || response?.id) {
-        toast({ title: 'Success', description: 'Address one updated successfully.' })
+        toast({ title: 'Success', description: `Address ${type} updated successfully.` })
         await fetchAddresses()
       } else {
         throw new Error(response?.message || 'Failed to save address.')
@@ -183,59 +184,24 @@ export default function ProfilePage() {
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to save address.', variant: 'destructive' })
     } finally {
-      setSavingAddressOne(false)
+      setSaving(false)
     }
   }
 
-  const handleSaveAddressTwo = async () => {
-    if (!user) return
-    setSavingAddressTwo(true)
+  const handleRemoveAddress = async (type: 'one' | 'two') => {
+    const isOne = type === 'one'
+    const addressId = isOne ? addressOne.id : addressTwo.id
+    if (!addressId) return
+
+    const setRemoving = isOne ? setRemovingAddressOne : setRemovingAddressTwo
+    const setAddress = isOne ? setAddressOne : setAddressTwo
+
+    setRemoving(true)
     try {
-      const payload = {
-        first_name: addressTwo.firstName,
-        last_name: addressTwo.lastName,
-        company_name: addressTwo.company,
-        address: addressTwo.address,
-        phone: addressTwo.phone,
-        region: addressTwo.city,
-        state: addressTwo.region,
-        zip_code: addressTwo.zipCode,
-        country: addressTwo.country,
-        email: addressTwo.email,
-      }
-
-      const method = addressTwo.id ? 'PATCH' : 'POST'
-      const endpoint = addressTwo.id ? `/v1/addresses/${addressTwo.id}` : '/v1/addresses'
-
-      const response = await fetchClient(endpoint, {
-        method,
-        body: JSON.stringify(payload),
-      })
-
-      if (response?.success || response?.data || response?.id) {
-        toast({ title: 'Success', description: 'Address two updated successfully.' })
-        await fetchAddresses()
-      } else {
-        throw new Error(response?.message || 'Failed to save address.')
-      }
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to save address.', variant: 'destructive' })
-    } finally {
-      setSavingAddressTwo(false)
-    }
-  }
-
-  const handleRemoveAddressOne = async () => {
-    if (!addressOne.id) return
-    setRemovingAddressOne(true)
-    try {
-      const response = await fetchClient(`/v1/addresses/${addressOne.id}`, {
-        method: 'DELETE',
-      })
-
+      const response = await fetchClient(`/v1/addresses/${addressId}`, { method: 'DELETE' })
       if (response?.success || response?.data) {
-        toast({ title: 'Success', description: 'Address one removed successfully.' })
-        setAddressOne({
+        toast({ title: 'Success', description: `Address ${type} removed successfully.` })
+        setAddress({
           id: '',
           firstName: '',
           lastName: '',
@@ -254,40 +220,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'Failed to remove address.', variant: 'destructive' })
     } finally {
-      setRemovingAddressOne(false)
-    }
-  }
-
-  const handleRemoveAddressTwo = async () => {
-    if (!addressTwo.id) return
-    setRemovingAddressTwo(true)
-    try {
-      const response = await fetchClient(`/v1/addresses/${addressTwo.id}`, {
-        method: 'DELETE',
-      })
-
-      if (response?.success || response?.data) {
-        toast({ title: 'Success', description: 'Address two removed successfully.' })
-        setAddressTwo({
-          id: '',
-          firstName: '',
-          lastName: '',
-          company: '',
-          address: '',
-          country: 'Bangladesh',
-          region: '',
-          city: '',
-          zipCode: '',
-          email: '',
-          phone: '',
-        })
-      } else {
-        throw new Error(response?.message || 'Failed to remove address.')
-      }
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to remove address.', variant: 'destructive' })
-    } finally {
-      setRemovingAddressTwo(false)
+      setRemoving(false)
     }
   }
 
@@ -510,12 +443,12 @@ export default function ProfilePage() {
             <TextField label="Phone Number" value={addressOne.phone} onChange={(v) => handleAddressOneChange(v, 'phone')} />
             <div className="flex justify-end gap-3">
               {addressOne.id && (
-                <Button variant="outline" onClick={handleRemoveAddressOne} disabled={removingAddressOne} className="text-destructive border-destructive hover:bg-danger hover:text-white">
+                <Button variant="outline" onClick={() => handleRemoveAddress('one')} disabled={removingAddressOne} className="text-destructive border-destructive hover:bg-danger hover:text-white">
                   {removingAddressOne && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Remove Address
                 </Button>
               )}
-              <Button onClick={handleSaveAddressOne} disabled={savingAddressOne || removingAddressOne} className="bg-primary text-white">
+              <Button onClick={() => handleSaveAddress('one')} disabled={savingAddressOne || removingAddressOne} className="bg-primary text-white">
                 {savingAddressOne && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 SAVE CHANGES
               </Button>
@@ -550,12 +483,12 @@ export default function ProfilePage() {
             <TextField label="Phone Number" value={addressTwo.phone} onChange={(v) => handleAddressTwoChange(v, 'phone')} />
             <div className="flex justify-end gap-3">
               {addressTwo.id && (
-                <Button variant="outline" onClick={handleRemoveAddressTwo} disabled={removingAddressTwo} className="text-destructive border-destructive hover:bg-danger hover:text-white">
+                <Button variant="outline" onClick={() => handleRemoveAddress('two')} disabled={removingAddressTwo} className="text-destructive border-destructive hover:bg-danger hover:text-white">
                   {removingAddressTwo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Remove Address
                 </Button>
               )}
-              <Button onClick={handleSaveAddressTwo} disabled={savingAddressTwo || removingAddressTwo} className="bg-primary text-white">
+              <Button onClick={() => handleSaveAddress('two')} disabled={savingAddressTwo || removingAddressTwo} className="bg-primary text-white">
                 {savingAddressTwo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 SAVE CHANGES
               </Button>

@@ -86,13 +86,8 @@ export async function fetchClient(endpoint: string, options: RequestInit = {}, _
   const token = getStoredToken()
 
   const method = options.method?.toUpperCase() || 'GET'
-  const isAuthRoute =
-    endpoint.includes('/auth/login') ||
-    endpoint.includes('/auth/register') ||
-    endpoint.includes('/auth/verify-otp') ||
-    endpoint.includes('/users/request-otp') ||
-    endpoint.includes('/users/verify-otp') ||
-    endpoint.includes('/users/forgot-password')
+  const authRoutes = ['/auth/login', '/auth/register', '/auth/verify-otp', '/users/request-otp', '/users/verify-otp', '/users/forgot-password']
+  const isAuthRoute = authRoutes.some(route => endpoint.includes(route))
 
   const headers: HeadersInit = {
     ...(token && !isAuthRoute && { Authorization: `Bearer ${token}` }),
