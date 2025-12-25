@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { IconArrowRight } from '@intentui/icons'
 import { useLogin } from '../hooks'
 import { toast } from 'sonner'
+import { LoaderCircleIcon } from 'lucide-react'
 
 export function Login() {
   const {
@@ -74,9 +75,9 @@ export function Login() {
           )}
         />
 
-        <Button type="submit" className={`w-full text-white! uppercase`}>
-          Login
-          <IconArrowRight className="shrink-0 text-white!" />
+        <Button type="submit" className={`w-full text-white! uppercase`} disabled={isPending}>
+          {isPending ? <LoaderCircleIcon className="size-4 animate-spin" /> : null}{' '}
+          {isPending ? 'Logging in...' : 'Login'}
         </Button>
       </div>
     </Form>
