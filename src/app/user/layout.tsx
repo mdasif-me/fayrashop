@@ -57,10 +57,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
         <h1 className="mb-2 text-2xl font-bold">Verification Required</h1>
         <p className="text-muted-foreground mb-8 max-w-md">
-          Your email address ({user.email}) is not yet verified. Please check your inbox for the verification link to access your dashboard.
+          Your email address ({user.email}) is not yet verified. Please check your inbox for the
+          verification link to access your dashboard.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <Button asChild variant="outline"><Link href="/">Go Home</Link></Button>
+          <Button asChild variant="outline">
+            <Link href="/">Go Home</Link>
+          </Button>
           <Button onClick={logout} variant="ghost" className="text-red-500 hover:text-red-600">
             <LogOut className="mr-2 h-4 w-4" /> Sign Out
           </Button>
@@ -76,7 +79,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="bg-card text-card-foreground sticky top-24 overflow-hidden rounded-lg border shadow-sm">
             <div className="bg-muted/30 flex flex-col items-center px-6 py-8 text-center">
               <div className="border-background ring-primary/10 relative mb-3 h-20 w-20 overflow-hidden rounded-full border-2 shadow-sm ring-2">
-                <Avatar src={user.image || ''} alt={user.name || 'User'} className="size-full object-cover *:size-full" />
+                <Avatar
+                  src={user.image || ''}
+                  alt={user.name || 'User'}
+                  className="size-full object-cover *:size-full"
+                />
               </div>
               <h2 className="text-lg font-bold tracking-tight">{user.name || 'User'}</h2>
               <p className="text-muted-foreground text-xs break-all">{user.email}</p>
@@ -93,7 +100,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       href={item.href as any}
                       className={cn(
                         'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all',
-                        isActive ? 'bg-primary text-white shadow-sm' : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                        isActive
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'hover:bg-muted text-muted-foreground hover:text-foreground'
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />

@@ -19,7 +19,7 @@ export const useLogin = () => {
   })
 }
 
-export const useSignup = () => {
+export const useRegister = () => {
   return useMutation({
     mutationFn: authApi.register,
   })

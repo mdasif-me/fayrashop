@@ -20,6 +20,10 @@ export const registerSchema = z
       .regex(/[0-9]/, 'Password must contain at least one number')
       .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
     confirm_password: z.string(),
+
+    is_agree: z
+      .boolean()
+      .refine((val) => val === true, { message: 'You must agree to the terms and conditions' }),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: 'Passwords do not match',

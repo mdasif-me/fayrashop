@@ -1,2 +1,2 @@
 export { Login } from './login'
-export { default as Register } from './register'
+export { Register } from './register'
