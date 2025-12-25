@@ -3,12 +3,12 @@
 import { IconHamburger } from '@intentui/icons'
 import { createContext, use, useCallback, useMemo, useState } from 'react'
 import { twJoin, twMerge } from 'tailwind-merge'
-import { useMediaQuery } from '@/hooks/use-media-query'
 import { cx } from '@/lib/primitive'
 import { Button, type ButtonProps } from './button'
 import { Link, type LinkProps } from './link'
 import { Separator } from './separator'
 import { Sheet } from './sheet'
+import { useIsMobile } from '../../hooks/use-mobile'
 
 interface NavbarContextProps {
   open: boolean
@@ -41,7 +41,7 @@ const NavbarProvider = ({
   className,
   ...props
 }: NavbarProviderProps) => {
-  const isMobile = useMediaQuery('(max-width: 767px)')
+  const isMobile = useIsMobile()
   const [openInternal, setOpenInternal] = useState(defaultOpen)
   const open = openProp ?? openInternal
 

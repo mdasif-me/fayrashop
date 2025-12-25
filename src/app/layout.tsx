@@ -4,7 +4,7 @@ import { Suspense } from 'react'
 import './styles/globals.css'
 import { rootMetadata } from '@/config/root-metadata.config'
 import { RootWrapper } from './root-wrapper'
-import { AppNavbar, Banner, Footer } from '@/components/layouts'
+import { AppNavbar, Footer } from '@/components/layouts'
 
 const outfit = Outfit({
   variable: '--font-outfit',
@@ -20,9 +20,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
         <RootWrapper>
-          <Suspense fallback={null}>
-            <Banner />
-          </Suspense>
+          <Suspense fallback={null}>{/* <Banner /> */}</Suspense>
           <AppNavbar />
           {children}
           <Footer />

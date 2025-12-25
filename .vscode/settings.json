@@ -54,5 +54,6 @@
     "vite.config.ts": "auto-imports.d.ts, .eslintrc-auto-import.json ",
     "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, eslint.config*, .prettier*, prettier*, .editorconfig"
   },
-  "kiroAgent.configureMCP": "Disabled"
+  "kiroAgent.configureMCP": "Disabled",
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

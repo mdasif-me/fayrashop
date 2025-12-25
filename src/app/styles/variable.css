@@ -29,6 +29,9 @@
   --info-subtle: oklch(0.685 0.169 237.323 / 0.15);
   --info-subtle-fg: oklch(0.5 0.134 242.749);
 
+  --popover: oklch(1 0 0);
+  --popover-fg: oklch(0.141 0.005 285.823);
+
   --warning: oklch(0.828 0.189 84.429);
   --warning-fg: oklch(0.279 0.077 45.635);
 
@@ -115,6 +118,9 @@
 
   --danger-subtle: oklch(0.637 0.237 25.331 / 0.1);
   --danger-subtle-fg: oklch(0.704 0.191 22.216);
+
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-fg: oklch(0.985 0 0);
 
   --border: oklch(0.27 0.013 285.805);
   --input: oklch(0.32 0.013 285.805);

@@ -1,12 +1,17 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { IconCart } from '@intentui/icons'
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react'
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
+
+  // Sync the year on mount to ensure hydration match
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear())
+  }, [])
 
   const footerLinks = {
     shop: [

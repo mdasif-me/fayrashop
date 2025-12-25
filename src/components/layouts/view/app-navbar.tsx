@@ -26,7 +26,6 @@ import {
 import { Separator } from '@/components/ui/separator'
 import { UserMenu } from './user-menu'
 import { Car, ShoppingBag } from 'lucide-react'
-import { useAuth } from '@/providers/auth-provider'
 
 const categories = [
   {
@@ -82,7 +81,7 @@ const categories = [
 ]
 
 export default function AppNavbar(props: NavbarProps) {
-  const { isAuthenticated } = useAuth()
+  // const { isAuthenticated } = useAuth()
 
   return (
     <NavbarProvider>
@@ -104,7 +103,7 @@ export default function AppNavbar(props: NavbarProps) {
           </NavbarItem>
           <NavbarItem href="/shop">Shop</NavbarItem>
           <NavbarItem href="/offers">Offers</NavbarItem>
-          {isAuthenticated && <NavbarItem href="/orders">Orders</NavbarItem>}
+          {/* {isAuthenticated && <NavbarItem href="/orders">Orders</NavbarItem>} */}
           <Menu>
             <NavbarItem>
               Categories
