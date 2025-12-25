@@ -23,18 +23,7 @@ export function Login() {
   const { mutate: login, isPending } = useLogin()
 
   function onSubmit(data: z.infer<typeof loginSchema>) {
-    login(data, {
-      onSuccess: (data) => {
-        toast.success('Success', {
-          description: data.message,
-        })
-      },
-      onError: (error) => {
-        toast.error('Error', {
-          description: error.message,
-        })
-      },
-    })
+    login(data)
   }
 
   return (

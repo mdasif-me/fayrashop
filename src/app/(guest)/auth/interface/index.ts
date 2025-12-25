@@ -18,4 +18,5 @@ export interface IUser {
 
 export interface IAuthorizationUser extends IUser {
   token: string
+  message?: string
 }

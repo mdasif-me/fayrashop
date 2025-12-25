@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import { authApi } from '../api'
 import { apiClient } from '@/lib/api-client'
+import { toast } from 'sonner'
 
 export const useLogin = () => {
   const queryClient = useQueryClient()
@@ -10,18 +11,34 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: authApi.login,
     onSuccess: ({ data }) => {
-      apiClient.setToken(data?.token ?? '')
-      const { token, ...userDataWithoutToken } = data || {}
-      apiClient.setUser(userDataWithoutToken)
-      queryClient.setQueryData(['user'], userDataWithoutToken)
-      push('/')
+      if (data?.message) {
+        toast.warning('Warning', {
+          description: data.message,
+        })
+        push('/auth?mode=verify')
+      } else {
+        apiClient.setToken(data?.token ?? '')
+        const { token, ...userDataWithoutToken } = data || {}
+        apiClient.setUser(userDataWithoutToken)
+        queryClient.setQueryData(['user'], userDataWithoutToken)
+        push('/')
+      }
+    },
+    onError: (error) => {
+      toast.error('Error', {
+        description: error.message,
+      })
     },
   })
 }
 
 export const useRegister = () => {
+  const { push } = useRouter()
   return useMutation({
     mutationFn: authApi.register,
+    onSuccess: () => {
+      push('/auth?mode=verify')
+    },
   })
 }
 
