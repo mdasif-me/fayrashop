@@ -9,7 +9,6 @@ import Link from 'next/link'
 import { Avatar } from '@/components/ui/avatar'
 
 export default function DashboardPage() {
-<<<<<<< HEAD
   const user = {
     name: 'Demo User',
     email: 'demo@fayrashop.com',
@@ -30,40 +29,10 @@ export default function DashboardPage() {
     email: 'demo@fayrashop.com',
     phone_number: '+8801000000000',
     type: 'billing',
-=======
-  const { user, loading: authLoading } = useAuth()
-  const [billingAddress, setBillingAddress] = useState<any>(null)
-  const [loadingAddress, setLoadingAddress] = useState(false)
-
-  useEffect(() => {
-    const fetchAddress = async () => {
-      setLoadingAddress(true)
-      try {
-        const response = await fetchClient('/v1/addresses')
-        const addresses = response?.data || []
-        if (addresses.length > 0) {
-          setBillingAddress(addresses[0])
-        }
-      } catch (error) {
-        console.error('Failed to fetch dashboard addresses', error)
-      } finally {
-        setLoadingAddress(false)
-      }
-    }
-    if (user) fetchAddress()
-  }, [user])
-
-  if (authLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 duration-500">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Hello, {user?.name || 'User'}</h1>
         <p className="text-muted-foreground max-w-lg text-sm">

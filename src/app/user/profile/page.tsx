@@ -159,7 +159,6 @@ export default function ProfilePage() {
   const handleAddressTwoChange = (value: string, id: string) => {
     setAddressTwo((prev) => ({ ...prev, [id]: value }))
   }
-<<<<<<< HEAD
   const handleSaveAddressOne = () => {
     const payload = {
       first_name: addressOne.firstName,
@@ -173,51 +172,11 @@ export default function ProfilePage() {
       zip_code: addressOne.zipCode,
       country: addressOne.country,
       email: addressOne.email,
-=======
-
-  const handleSaveAddress = async (type: 'one' | 'two') => {
-    if (!user) return
-    const isOne = type === 'one'
-    const setSaving = isOne ? setSavingAddressOne : setSavingAddressTwo
-    const addressData = isOne ? addressOne : addressTwo
-
-    setSaving(true)
-    try {
-      const payload = {
-        first_name: addressData.firstName,
-        last_name: addressData.lastName,
-        company_name: addressData.company,
-        address: addressData.address,
-        phone: addressData.phone,
-        region: addressData.city,
-        state: addressData.region,
-        zip_code: addressData.zipCode,
-        country: addressData.country,
-        email: addressData.email,
-      }
-
-      const method = addressData.id ? 'PATCH' : 'POST'
-      const endpoint = addressData.id ? `/v1/addresses/${addressData.id}` : '/v1/addresses'
-
-      const response = await fetchClient(endpoint, { method, body: JSON.stringify(payload) })
-
-      if (response?.success || response?.data || response?.id) {
-        toast({ title: 'Success', description: `Address ${type} updated successfully.` })
-        await fetchAddresses()
-      } else {
-        throw new Error(response?.message || 'Failed to save address.')
-      }
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to save address.', variant: 'destructive' })
-    } finally {
-      setSaving(false)
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
     }
     void payload
     toast.success('Address saved (design-only)')
   }
 
-<<<<<<< HEAD
   const handleSaveAddressTwo = () => {
     const payload = {
       first_name: addressTwo.firstName,
@@ -270,42 +229,6 @@ export default function ProfilePage() {
       phone: '',
     })
     toast.success('Address removed (design-only)')
-=======
-  const handleRemoveAddress = async (type: 'one' | 'two') => {
-    const isOne = type === 'one'
-    const addressId = isOne ? addressOne.id : addressTwo.id
-    if (!addressId) return
-
-    const setRemoving = isOne ? setRemovingAddressOne : setRemovingAddressTwo
-    const setAddress = isOne ? setAddressOne : setAddressTwo
-
-    setRemoving(true)
-    try {
-      const response = await fetchClient(`/v1/addresses/${addressId}`, { method: 'DELETE' })
-      if (response?.success || response?.data) {
-        toast({ title: 'Success', description: `Address ${type} removed successfully.` })
-        setAddress({
-          id: '',
-          firstName: '',
-          lastName: '',
-          company: '',
-          address: '',
-          country: 'Bangladesh',
-          region: '',
-          city: '',
-          zipCode: '',
-          email: '',
-          phone: '',
-        })
-      } else {
-        throw new Error(response?.message || 'Failed to remove address.')
-      }
-    } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to remove address.', variant: 'destructive' })
-    } finally {
-      setRemoving(false)
-    }
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
   }
 
   const handleImageClick = () => fileInputRef.current?.click()
@@ -516,29 +439,21 @@ export default function ProfilePage() {
             />
             <div className="flex justify-end gap-3">
               {addressOne.id && (
-<<<<<<< HEAD
                 <Button
                   variant="outline"
                   onClick={handleRemoveAddressOne}
                   disabled={removingAddressOne}
                   className="text-destructive border-destructive hover:bg-danger hover:text-white"
                 >
-=======
-                <Button variant="outline" onClick={() => handleRemoveAddress('one')} disabled={removingAddressOne} className="text-destructive border-destructive hover:bg-danger hover:text-white">
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
                   {removingAddressOne && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Remove Address
                 </Button>
               )}
-<<<<<<< HEAD
               <Button
                 onClick={handleSaveAddressOne}
                 disabled={savingAddressOne || removingAddressOne}
                 className="bg-primary text-white"
               >
-=======
-              <Button onClick={() => handleSaveAddress('one')} disabled={savingAddressOne || removingAddressOne} className="bg-primary text-white">
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
                 {savingAddressOne && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 SAVE CHANGES
               </Button>
@@ -616,29 +531,21 @@ export default function ProfilePage() {
             />
             <div className="flex justify-end gap-3">
               {addressTwo.id && (
-<<<<<<< HEAD
                 <Button
                   variant="outline"
                   onClick={handleRemoveAddressTwo}
                   disabled={removingAddressTwo}
                   className="text-destructive border-destructive hover:bg-danger hover:text-white"
                 >
-=======
-                <Button variant="outline" onClick={() => handleRemoveAddress('two')} disabled={removingAddressTwo} className="text-destructive border-destructive hover:bg-danger hover:text-white">
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
                   {removingAddressTwo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Remove Address
                 </Button>
               )}
-<<<<<<< HEAD
               <Button
                 onClick={handleSaveAddressTwo}
                 disabled={savingAddressTwo || removingAddressTwo}
                 className="bg-primary text-white"
               >
-=======
-              <Button onClick={() => handleSaveAddress('two')} disabled={savingAddressTwo || removingAddressTwo} className="bg-primary text-white">
->>>>>>> 2517b1d8aab55f474eff4e4195ee771e9277985f
                 {savingAddressTwo && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 SAVE CHANGES
               </Button>

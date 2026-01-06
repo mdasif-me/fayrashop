@@ -34,117 +34,18 @@ export function clearStoredAuth() {
 }
 
 export async function refreshAuthToken() {
-  const url = `${API_BASE_URL}/v1/auth/refresh`
-  const refreshToken = getStoredRefreshToken()
-
-  if (!refreshToken) {
-    return null
-  }
-
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  })
-
-  let data
-  try {
-    data = await response.json()
-  } catch (error) {
-    data = null
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      data?.message || data?.error || `API Error: ${response.status} ${response.statusText}`
-    )
-  }
-
-  const token =
-    data?.data?.tokens?.access_token ||
-    data?.tokens?.access_token ||
-    data?.data?.access_token ||
-    data?.access_token ||
-    data?.data?.token ||
-    data?.token
-
-  const newRefreshToken =
-    data?.data?.tokens?.refresh_token || data?.tokens?.refresh_token || data?.refresh_token
-
-  if (!token) {
-    throw new Error('No token received from refresh endpoint')
-  }
-
-  setStoredToken(token, newRefreshToken)
-  return token
+  return null
 }
 
 export async function fetchClient(endpoint: string, options: RequestInit = {}, _retried = false) {
-  const url = `${API_BASE_URL}${endpoint}`
-  const token = getStoredToken()
-
-  const method = options.method?.toUpperCase() || 'GET'
-  const authRoutes = ['/auth/login', '/auth/register', '/auth/verify-otp', '/users/request-otp', '/users/verify-otp', '/users/forgot-password']
-  const isAuthRoute = authRoutes.some(route => endpoint.includes(route))
-
-  const headers: HeadersInit = {
-    ...(token && !isAuthRoute && { Authorization: `Bearer ${token}` }),
-    ...options.headers,
-  }
-
-  if (options.body || ['POST', 'PUT', 'PATCH'].includes(method)) {
-    const isFormData = options.body instanceof FormData
-    if (!isFormData && !(headers as any)['Content-Type']) {
-      ;(headers as any)['Content-Type'] = 'application/json'
-    }
-  }
-
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  })
-
-  let data
-  try {
-    data = await response.json()
-  } catch (error) {
-    data = null
-  }
-
-  console.log(`[API] ${method} ${endpoint} - Status: ${response.status}`, data)
-
-  if (!response.ok) {
-    if (!_retried && (response.status === 401 || response.status === 403) && !isAuthRoute) {
-      try {
-        const newToken = await refreshAuthToken()
-        if (!newToken) {
-          throw new Error('Session expired')
-        }
-        return fetchClient(endpoint, options, true)
-      } catch (refreshError) {
-        clearStoredAuth()
-        throw refreshError
-      }
-    }
-
-    throw new Error(
-      data?.message || data?.error || `API Error: ${response.status} ${response.statusText}`
-    )
-  }
-
-  return data
+  void endpoint
+  void options
+  void _retried
+  throw new Error('API disabled (design-only mode)')
 }
 
 export async function logoutClient() {
-  const token = getStoredToken()
   try {
-    if (token) {
-      await fetch(`${API_BASE_URL}/v1/auth/logout?token=${token}`, {
-        method: 'GET',
-      })
-    }
   } catch (error) {
     console.error('API Logout failed', error)
   } finally {
