@@ -81,8 +81,6 @@ const categories = [
 ]
 
 export default function AppNavbar(props: NavbarProps) {
-  // const { isAuthenticated } = useAuth()
-
   return (
     <NavbarProvider>
       <Navbar {...props} intent="default">

@@ -1,55 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Bell, Moon, Globe, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
+import { Bell, Globe } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useAuth } from '@/providers/auth-provider'
-import { fetchClient } from '@/lib/api-config'
-import { useToast } from '@/hooks/use-toast'
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth()
-  const { toast } = useToast()
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  const handleDeleteAccount = async () => {
-    if (!user) return
-
-    if (
-      !confirm(
-        'Are you sure you want to delete your account? This action is permanent and cannot be undone.'
-      )
-    ) {
-      return
-    }
-
-    setIsDeleting(true)
-    try {
-      await fetchClient(`/v1/users/${user.id}`, {
-        method: 'DELETE',
-      })
-
-      toast({
-        title: 'Account Deleted',
-        description: 'Your account has been successfully removed.',
-      })
-
-      // Standard logout procedure after deletion
-      await logout()
-    } catch (error: any) {
-      console.error('Failed to delete account', error)
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete account. Please try again.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div>

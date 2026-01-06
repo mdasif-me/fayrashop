@@ -1,5 +1,5 @@
 import z from 'zod'
-import { loginSchema } from '.'
+import { loginSchema } from './login.schema'
 
 export const verifySchema = loginSchema.extend({
   otp: z

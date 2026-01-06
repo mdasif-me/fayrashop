@@ -7,13 +7,16 @@ import { registerSchema } from '../schema'
 import { Controller, useForm } from 'react-hook-form'
 import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useRegister } from '../hooks'
 import { toast } from 'sonner'
 import { LoaderCircleIcon } from 'lucide-react'
 import { Checkbox } from '../../../../components/ui/checkbox'
 import Link from 'next/link'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export function Register() {
+  const router = useRouter()
+  const [isPending, setIsPending] = useState(false)
   const {
     control,
     handleSubmit,
@@ -22,21 +25,14 @@ export function Register() {
     resolver: zodResolver(registerSchema),
   })
 
-  const { mutate: register, isPending } = useRegister()
-
   function onSubmit(data: z.infer<typeof registerSchema>) {
-    register(data, {
-      onSuccess: (data) => {
-        toast.success('Success', {
-          description: data.message,
-        })
-      },
-      onError: (error) => {
-        toast.error('Error', {
-          description: error.message,
-        })
-      },
-    })
+    void data
+    setIsPending(true)
+    setTimeout(() => {
+      setIsPending(false)
+      toast.success('Registered (design-only)')
+      router.push('/auth?mode=verify', { scroll: false })
+    }, 500)
   }
 
   return (

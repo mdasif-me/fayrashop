@@ -1,0 +1,15 @@
+.next/types/app/user/management/page.ts(2,24): error TS2307: Cannot find module '../../../../../src/app/user/management/page.js' or its corresponding type declarations.
+.next/types/app/user/management/page.ts(5,29): error TS2307: Cannot find module '../../../../../src/app/user/management/page.js' or its corresponding type declarations.
+src/app/(guest)/auth/verify-email/page.tsx(9,10): error TS2305: Module '"../hooks"' has no exported member 'useVerifyEmail'.
+src/app/(guest)/auth/verify-email/page.tsx(28,19): error TS7006: Parameter 'result' implicitly has an 'any' type.
+src/app/user/layout.tsx(20,25): error TS2307: Cannot find module '@/providers/auth-provider' or its corresponding type declarations.
+src/app/user/layout.tsx(21,31): error TS2307: Cannot find module '@/lib/auth-utils' or its corresponding type declarations.
+src/app/user/page.tsx(65,39): error TS2339: Property 'region' does not exist on type 'IAddress'.
+src/app/user/page.tsx(107,87): error TS2339: Property 'region' does not exist on type 'IAddress'.
+src/app/user/page.tsx(114,67): error TS2339: Property 'phone' does not exist on type 'IAddress'.
+src/components/ui/base-button.tsx(3,28): error TS2307: Cannot find module '@base-ui-components/react/merge-props' or its corresponding type declarations.
+src/components/ui/base-button.tsx(4,27): error TS2307: Cannot find module '@base-ui-components/react/use-render' or its corresponding type declarations.
+src/components/ui/base-button.tsx(373,3): error TS2339: Property 'render' does not exist on type 'ButtonProps'.
+src/components/ui/base-button.tsx(375,3): error TS2339: Property 'children' does not exist on type 'ButtonProps'.
+src/components/ui/base-button.tsx(376,3): error TS2339: Property 'className' does not exist on type 'ButtonProps'.
+src/components/ui/base-button.tsx(404,24): error TS2339: Property 'disabled' does not exist on type '{}'.

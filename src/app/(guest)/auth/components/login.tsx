@@ -7,11 +7,14 @@ import { loginSchema } from '../schema'
 import { Controller, useForm } from 'react-hook-form'
 import z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useLogin } from '../hooks'
 import { toast } from 'sonner'
 import { LoaderCircleIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export function Login() {
+  const router = useRouter()
+  const [isPending, setIsPending] = useState(false)
   const {
     control,
     handleSubmit,
@@ -20,10 +23,14 @@ export function Login() {
     resolver: zodResolver(loginSchema),
   })
 
-  const { mutate: login, isPending } = useLogin()
-
   function onSubmit(data: z.infer<typeof loginSchema>) {
-    login(data)
+    void data
+    setIsPending(true)
+    setTimeout(() => {
+      setIsPending(false)
+      toast.success('Logged in (design-only)')
+      router.push('/user')
+    }, 400)
   }
 
   return (

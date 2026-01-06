@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { fetchClient } from '@/lib/api-config'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -21,21 +20,11 @@ function VerifyEmailContent() {
       return
     }
 
-    const verify = async () => {
-      try {
-        const result = await fetchClient('/v1/auth/verify-email', {
-          method: 'POST',
-          body: JSON.stringify({ token }),
-        })
-        setStatus('success')
-        setMessage(result?.message || 'Your email has been successfully verified!')
-      } catch (error: unknown) {
-        setStatus('error')
-        setMessage(error instanceof Error ? error.message : 'Verification failed.')
-      }
-    }
-
-    verify()
+    setStatus('loading')
+    setTimeout(() => {
+      setStatus('success')
+      setMessage('Your email has been successfully verified! (design-only)')
+    }, 600)
   }, [token])
 
   return (
