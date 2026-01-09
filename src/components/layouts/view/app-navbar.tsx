@@ -81,8 +81,6 @@ const categories = [
 ]
 
 export default function AppNavbar(props: NavbarProps) {
-  // const { isAuthenticated } = useAuth()
-
   return (
     <NavbarProvider>
       <Navbar {...props} intent="default">
@@ -103,7 +101,7 @@ export default function AppNavbar(props: NavbarProps) {
           </NavbarItem>
           <NavbarItem href="/shop">Shop</NavbarItem>
           <NavbarItem href="/offers">Offers</NavbarItem>
-          {/* {isAuthenticated && <NavbarItem href="/orders">Orders</NavbarItem>} */}
+          <NavbarItem href="/orders">Orders</NavbarItem>
           <Menu>
             <NavbarItem>
               Categories

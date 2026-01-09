@@ -1,19 +1,21 @@
 'use client'
 
 import { Suspense } from 'react'
+import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form } from '@/components/ui/form'
 import { TextField } from '@/components/ui/text-field'
 import { Button } from '@/components/ui/button'
-import { forgetPasswordSchema, ForgetPasswordSchemaType, ResetPasswordSchemaType } from '../schema'
+import { forgetPasswordSchema, ForgetPasswordSchemaType } from '../schema'
 import { IconArrowRight } from '@intentui/icons'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
-import { useToast } from '@/hooks/use-toast'
-import { fetchClient } from '@/lib/api-config'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 function ForgetPasswordContent() {
+  const [isPending, setIsPending] = useState(false)
   const {
     handleSubmit,
     control,
@@ -25,25 +27,13 @@ function ForgetPasswordContent() {
     },
   })
 
-  const { toast } = useToast()
-
-  const onSubmit = async (data: ForgetPasswordSchemaType) => {
-    try {
-      await fetchClient('/v1/auth/forgot-password', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      })
-      toast({
-        title: 'Success',
-        description: 'If an account exists, a reset link has been sent.',
-      })
-    } catch (error: unknown) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to request password reset',
-        variant: 'destructive',
-      })
-    }
+  const onSubmit = (data: ForgetPasswordSchemaType) => {
+    void data
+    setIsPending(true)
+    setTimeout(() => {
+      setIsPending(false)
+      toast.success('Code sent (design-only)')
+    }, 500)
   }
 
   return (
@@ -76,10 +66,12 @@ function ForgetPasswordContent() {
               )}
             />
           </div>
-          <Button type="submit" className={`w-full text-white! uppercase`}>
+          <Button type="submit" className="w-full uppercase" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Send Code
-            <IconArrowRight className="shrink-0 text-white!" />
+            <IconArrowRight className="ml-2 shrink-0" />
           </Button>
+
           <article className="mt-4 space-y-1">
             <p className="text-muted-fg text-sm">
               Remember your password?{' '}
@@ -88,15 +80,6 @@ function ForgetPasswordContent() {
                 className="text-primary hover:text-primary/80 font-medium underline underline-offset-4"
               >
                 Sign In
-              </Link>
-            </p>
-            <p className="text-muted-fg text-sm">
-              Don&apos;t have an account?{' '}
-              <Link
-                href="/auth?mode=register"
-                className="text-primary hover:text-primary/80 font-medium underline underline-offset-4"
-              >
-                Sign Up
               </Link>
             </p>
           </article>

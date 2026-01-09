@@ -1,24 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import {
-  LayoutDashboard,
-  Settings,
-  Shield,
-  User,
-  LogOut,
-  ChevronRight,
-  Loader2,
-} from 'lucide-react'
+import { LayoutDashboard, Settings, Shield, User, LogOut, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Avatar } from '@/components/ui/avatar'
 import { IconHeadphones } from '@intentui/icons'
-import { useAuth } from '@/providers/auth-provider'
-import { isUserPending } from '@/lib/auth-utils'
 
 const sidebarItems = [
   { title: 'Overview', href: '/user', icon: LayoutDashboard },
@@ -31,45 +21,14 @@ const sidebarItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { user, logout, loading, isAuthenticated } = useAuth()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    if (mounted && !loading && !isAuthenticated) router.push('/auth')
-  }, [mounted, loading, isAuthenticated, router])
-
-  if (!mounted || loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="text-primary h-8 w-8 animate-spin" />
-      </div>
-    )
+  const user = {
+    name: 'Demo User',
+    email: 'demo@fayrashop.com',
+    image: '',
   }
 
-  if (!isAuthenticated || !user) return null
-
-  if (isUserPending(user)) {
-    return (
-      <div className="container mx-auto flex min-h-[400px] flex-col items-center justify-center px-4 py-16 text-center">
-        <div className="bg-primary/10 mb-6 flex h-20 w-20 items-center justify-center rounded-full">
-          <LayoutDashboard className="text-primary h-10 w-10 opacity-20" />
-        </div>
-        <h1 className="mb-2 text-2xl font-bold">Verification Required</h1>
-        <p className="text-muted-foreground mb-8 max-w-md">
-          Your email address ({user.email}) is not yet verified. Please check your inbox for the
-          verification link to access your dashboard.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <Button asChild variant="outline">
-            <Link href="/">Go Home</Link>
-          </Button>
-          <Button onClick={logout} variant="ghost" className="text-red-500 hover:text-red-600">
-            <LogOut className="mr-2 h-4 w-4" /> Sign Out
-          </Button>
-        </div>
-      </div>
-    )
+  const logout = () => {
+    router.push('/auth')
   }
 
   return (

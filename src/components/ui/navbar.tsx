@@ -1,14 +1,29 @@
 'use client'
 
 import { IconHamburger } from '@intentui/icons'
-import { createContext, use, useCallback, useMemo, useState } from 'react'
+import { createContext, use, useCallback, useEffect, useMemo, useState } from 'react'
 import { twJoin, twMerge } from 'tailwind-merge'
 import { cx } from '@/lib/primitive'
 import { Button, type ButtonProps } from './button'
 import { Link, type LinkProps } from './link'
 import { Separator } from './separator'
 import { Sheet } from './sheet'
-import { useIsMobile } from '../../hooks/use-mobile'
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+
+    const update = () => setIsMobile(mq.matches)
+    update()
+
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
+  return isMobile
+}
 
 interface NavbarContextProps {
   open: boolean

@@ -1,14 +1,6 @@
 'use client'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
-
 class ApiClient {
-  private baseUrl: string
-
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl
-  }
-
   private getToken(): string | null {
     const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'))
     if (match) return match[2]
@@ -67,72 +59,38 @@ class ApiClient {
     document.cookie = 'tempAuth=; path=/; max-age=0'
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`
-    const token = this.getToken()
-
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    }
-
-    if (token) {
-      // @ts-ignore
-      headers['Authorization'] = `Bearer ${token}`
-    }
-
-    const config: RequestInit = {
-      ...options,
-      headers,
-    }
-
-    try {
-      const response = await fetch(url, config)
-
-      if (response.status === 401) {
-        this.removeToken()
-        this.removeUser()
-        if (window.location.pathname !== '/auth/login') {
-          window.location.href = '/auth/login'
-        }
-        throw new Error('Unauthorized')
-      }
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'API Error' }))
-        throw new Error(error.message || 'Something went wrong')
-      }
-
-      return response.json()
-    } catch (error) {
-      console.error('API Request Failed:', error)
-      throw error
-    }
+  get<T>(_endpoint: string, _options?: RequestInit): Promise<T> {
+    void _endpoint
+    void _options
+    return Promise.reject(new Error('API disabled (design-only mode)'))
   }
 
-  get<T>(endpoint: string, options?: RequestInit) {
-    return this.request<T>(endpoint, { ...options, method: 'GET' })
+  post<T>(_endpoint: string, _body: unknown, _options?: RequestInit): Promise<T> {
+    void _endpoint
+    void _body
+    void _options
+    return Promise.reject(new Error('API disabled (design-only mode)'))
   }
 
-  post<T>(endpoint: string, body: unknown, options?: RequestInit) {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'POST',
-      body: JSON.stringify(body),
-    })
+  put<T>(_endpoint: string, _body: unknown, _options?: RequestInit): Promise<T> {
+    void _endpoint
+    void _body
+    void _options
+    return Promise.reject(new Error('API disabled (design-only mode)'))
   }
 
-  put<T>(endpoint: string, body: unknown, options?: RequestInit) {
-    return this.request<T>(endpoint, {
-      ...options,
-      method: 'PUT',
-      body: JSON.stringify(body),
-    })
+  patch<T>(_endpoint: string, _body: unknown, _options?: RequestInit): Promise<T> {
+    void _endpoint
+    void _body
+    void _options
+    return Promise.reject(new Error('API disabled (design-only mode)'))
   }
 
-  delete<T>(endpoint: string, options?: RequestInit) {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' })
+  delete<T>(_endpoint: string, _options?: RequestInit): Promise<T> {
+    void _endpoint
+    void _options
+    return Promise.reject(new Error('API disabled (design-only mode)'))
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL)
+export const apiClient = new ApiClient()

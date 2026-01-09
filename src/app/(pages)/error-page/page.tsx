@@ -13,10 +13,10 @@ function ErrorPage() {
           height={500}
           className="max-w-52 object-contain lg:max-w-sm"
         />
-        <h1 className="mb-4 text-4xl font-semibold">404, Page not founds</h1>
+        <h1 className="mb-4 text-4xl font-semibold">404, Page not found</h1>
         <p className="mb-8 max-w-md text-base">
-          Something went wrong. It’s look that your requested could not be found. It’s look like the
-          link is broken or the page is removed.
+          Something went wrong. It looks like the page you requested could not be found.
+          The link may be broken or the page has been removed.
         </p>
         <div className="flex gap-4">
           <a

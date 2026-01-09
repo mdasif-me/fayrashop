@@ -21,6 +21,7 @@ interface ProductStore {
   // State
   products: Product[]
   filteredProducts: Product[]
+  selectedProductId: number | null
   selectedCategory: string
   searchQuery: string
   priceRange: [number, number]
@@ -30,6 +31,7 @@ interface ProductStore {
   viewMode: string
 
   // Actions
+  setSelectedProductId: (productId: number | null) => void
   setSelectedCategory: (category: string) => void
   setSearchQuery: (query: string) => void
   setPriceRange: (range: [number, number]) => void
@@ -235,6 +237,7 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   // Initial state
   products: sampleProducts,
   filteredProducts: sampleProducts,
+  selectedProductId: null,
   selectedCategory: 'all',
   searchQuery: '',
   priceRange: [0, 3000],
@@ -244,6 +247,10 @@ export const useProductStore = create<ProductStore>((set, get) => ({
   viewMode: 'grid',
 
   // Actions
+  setSelectedProductId: (productId) => {
+    set({ selectedProductId: productId })
+  },
+
   setSelectedCategory: (category) => {
     set({ selectedCategory: category })
     get().applyFilters()

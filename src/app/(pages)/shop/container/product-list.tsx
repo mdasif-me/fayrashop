@@ -15,6 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useProductStore } from '../store'
 import { Input, Label } from '../../../../components/ui/field'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 const categories = [
   { id: 'all', label: 'All', icon: '🏪' },
@@ -213,11 +214,13 @@ function FilterSection() {
 }
 
 export default function ProductList() {
+  const router = useRouter()
   const {
     filteredProducts,
     selectedCategory,
     searchQuery,
     viewMode,
+    setSelectedProductId,
     setSelectedCategory,
     setSearchQuery,
     setViewMode,
@@ -327,10 +330,29 @@ export default function ProductList() {
               }`}
             >
               {filteredProducts.map((product: any) => (
-                <Card key={product.id} className="group transition-shadow hover:shadow-lg">
+                <Card
+                  key={product.id}
+                  role="button"
+                  tabIndex={0}
+                  className="group cursor-pointer transition-shadow hover:shadow-lg"
+                  onClick={() => {
+                    setSelectedProductId(product.id)
+                    router.push(`/product-detail?id=${product.id}`)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setSelectedProductId(product.id)
+                      router.push(`/product-detail?id=${product.id}`)
+                    }
+                  }}
+                >
                   <CardContent className="p-3 sm:p-4">
                     <div className="relative mb-3 sm:mb-4">
-                      <Link href={`/product-detail?id=${product.id}`}>
+                      <Link
+                        href={`/product-detail?id=${product.id}`}
+                        onClick={() => setSelectedProductId(product.id)}
+                      >
                         <img
                           src={product.image}
                           alt={product.title}
@@ -338,14 +360,17 @@ export default function ProductList() {
                         />
                       </Link>
                       {product.isNew && (
-                        <Badge className="absolute -top-4 -left-2 bg-danger text-xs text-white hover:bg-red-600">
+                        <Badge className="bg-danger absolute -top-4 -left-2 text-xs text-white hover:bg-red-600">
                           New
                         </Badge>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      <Link href={`/product-detail?id=${product.id}`}>
+                      <Link
+                        href={`/product-detail?id=${product.id}`}
+                        onClick={() => setSelectedProductId(product.id)}
+                      >
                         <h3 className="line-clamp-2 text-sm leading-tight font-medium transition-colors hover:text-blue-600">
                           {product.title}
                         </h3>
@@ -399,12 +424,24 @@ export default function ProductList() {
                       </div>
 
                       <div className="flex gap-2 pt-2">
-                        <Button className="flex-1" size="sm">
+                        <Button
+                          className="flex-1"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                          }}
+                        >
                           <ShoppingCart className="mr-1 h-4 w-4 text-white sm:mr-2" />
                           <span className="xs:inline hidden">Add to cart</span>
                           <span className="xs:hidden text-white">Add</span>
                         </Button>
-                        <Button size="sm" className="bg-primary px-2 sm:px-3">
+                        <Button
+                          size="sm"
+                          className="bg-primary px-2 sm:px-3"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                          }}
+                        >
                           <Heart className="h-4 w-4 text-white" />
                         </Button>
                       </div>

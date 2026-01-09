@@ -3,60 +3,40 @@
 import React, { useState, useEffect } from 'react'
 import CreativeOTPInput from '@/components/ui/creative-otp-input'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useVerify, useResend } from '../hooks'
-import { apiClient } from '@/lib/api-client'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 export function VerifyOTP() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [email, setEmail] = useState<string>('')
-  const router = useRouter()
-
-  const { mutate: verify, isPending: isVerifying } = useVerify()
-  const { mutate: resend, isPending: isResending } = useResend()
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
 
   useEffect(() => {
-    const tempAuth = apiClient.getTempAuth() as any
-    if (!tempAuth?.email) {
-      toast.error('Error', {
-        description: 'Please login or register first',
-      })
-      router.push('/auth')
-      return
-    }
-    setEmail(tempAuth.email)
-  }, [router])
+    setEmail('demo@fayrashop.com')
+  }, [])
 
   const handleComplete = (otp: string) => {
     setStatus('idle')
-    const tempAuth = apiClient.getTempAuth() as any
 
-    if (!tempAuth?.email) {
-      setStatus('error')
-      return
-    }
-
-    verify({
-      email: tempAuth.email,
-      password: tempAuth.userData?.password || '',
-      otp,
-    })
+    setIsVerifying(true)
+    setTimeout(() => {
+      setIsVerifying(false)
+      if (otp === '000000') {
+        setStatus('error')
+        toast.error('Invalid code')
+        return
+      }
+      setStatus('success')
+      toast.success('Verification successful (design-only)')
+    }, 500)
   }
 
   const handleResend = () => {
-    const tempAuth = apiClient.getTempAuth() as any
-    if (!tempAuth?.email) {
-      toast.error('Error', {
-        description: 'Email not found',
-      })
-      return
-    }
-
-    resend({
-      email: tempAuth.email,
-      password: tempAuth.userData?.password || '',
-    })
+    setIsResending(true)
+    setTimeout(() => {
+      setIsResending(false)
+      toast.success('OTP sent (design-only)')
+    }, 500)
   }
 
   return (

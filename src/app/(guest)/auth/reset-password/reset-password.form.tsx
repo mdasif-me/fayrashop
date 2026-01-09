@@ -7,16 +7,17 @@ import { TextField } from '@/components/ui/text-field'
 import { Button } from '@/components/ui/button'
 import { resetPasswordSchema, ResetPasswordSchemaType } from '../schema'
 import { IconArrowRight } from '@intentui/icons'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useToast } from '@/hooks/use-toast'
-import { fetchClient } from '@/lib/api-config'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 export default function ResetPasswordForm() {
+  const router = useRouter()
   const search = useSearchParams()
   const token = search.get('token') || ''
 
-  const { toast } = useToast()
-  const router = useRouter()
+  const [isPending, setIsPending] = useState(false)
 
   const {
     handleSubmit,
@@ -31,52 +32,14 @@ export default function ResetPasswordForm() {
     },
   })
 
-  const onSubmit = async (data: ResetPasswordSchemaType) => {
-    try {
-      const payload = {
-        token: data.token,
-        password: data.newPassword,
-        confirmPassword: data.confirmPassword,
-      }
-
-      const result = await fetchClient('/v1/auth/reset-password', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      })
-
-      // If backend returns a token after reset, store it
-      const token =
-        result?.tokens?.access_token ||
-        result?.token ||
-        result?.data?.token ||
-        result?.accessToken ||
-        result?.data?.accessToken ||
-        result?.access_token ||
-        result?.data?.access_token
-
-      if (token) {
-        localStorage.setItem('token', token)
-        document.cookie = `token=${token}; path=/; max-age=86400`
-      }
-
-      if (result?.user || result?.data?.user) {
-        localStorage.setItem('user', JSON.stringify(result?.user || result?.data?.user))
-      }
-
-      toast({
-        title: 'Success',
-        description: result?.message || 'Password reset successful',
-      })
-
-      // If we got a token, go to home; otherwise go to login
-      router.push(token ? '/' : '/auth?mode=login')
-    } catch (error: unknown) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to reset password',
-        variant: 'destructive',
-      })
-    }
+  const onSubmit = (data: ResetPasswordSchemaType) => {
+    void data
+    setIsPending(true)
+    setTimeout(() => {
+      setIsPending(false)
+      toast.success('Password reset (design-only)')
+      router.push('/auth?mode=login', { scroll: false })
+    }, 500)
   }
 
   return (
@@ -116,9 +79,10 @@ export default function ResetPasswordForm() {
             )}
           />
         </div>
-        <Button type="submit" className={`w-full uppercase`}>
+        <Button type="submit" className="w-full uppercase" disabled={isPending}>
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Reset Password
-          <IconArrowRight className="shrink-0 text-white" />
+          <IconArrowRight className="ml-2 shrink-0" />
         </Button>
       </Form>
     </>

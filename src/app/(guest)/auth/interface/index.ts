@@ -7,10 +7,11 @@ export interface IUser {
   is_agree: boolean
   phone: string | null
   photo_id: string | null
-  status: EStatus
-  provider: EAuthProvider
-  role: ERole
-  gender: EGender
+  image?: string | null
+  status: 'unverified' | 'active' | 'inactive' | 'suspended' | string // generalized for safety
+  provider: 'local' | 'google' | 'facebook' | string
+  role: 'customer' | 'admin' | string
+  gender: 'male' | 'female' | 'other' | 'unknown' | string
   created_at: string
   updated_at: string
   deleted_at: string | null

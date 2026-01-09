@@ -4,11 +4,8 @@ import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/field'
-import { Shield, Key, Smartphone, Loader2, AlertTriangle, Trash2 } from 'lucide-react'
-import { fetchClient } from '@/lib/api-config'
-import { useAuth } from '@/providers/auth-provider'
-import { useToast } from '@/hooks/use-toast'
-
+import { Key, Smartphone, Loader2, AlertTriangle, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Modal,
   ModalBody,
@@ -19,92 +16,36 @@ import {
 } from '@/components/ui/modal'
 
 export default function SecurityPage() {
-  const { user, logout } = useAuth()
-  const { toast } = useToast()
-  const [isDeleting, setIsDeleting] = useState(false)
+  const user = { id: 'demo-user' }
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   })
 
+  const isUpdatingPassword = false
+  const isDeleting = false
+
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
     setPasswordData((prev) => ({ ...prev, [id]: value }))
   }
 
-  const updatePassword = async () => {
+  const updatePassword = () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: 'Validation Error',
-        description: 'Passwords do not match.',
-        variant: 'destructive',
-      })
+      toast.error('Passwords do not match')
       return
     }
 
-    setIsUpdatingPassword(true)
-    try {
-      await fetchClient('/v1/users/change-password', {
-        method: 'POST',
-        body: JSON.stringify({
-          oldPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        }),
-      })
-
-      toast({
-        title: 'Success',
-        description: 'Your password has been updated successfully.',
-      })
-      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update password.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsUpdatingPassword(false)
-    }
+    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+    toast.success('Password updated (design-only)')
   }
 
-  const handleDeleteAccount = async () => {
-    const userId = user?.id || user?._id
-    if (!userId) {
-      toast({
-        title: 'Session Error',
-        description: 'User information not found. Please try logging in again.',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    setIsDeleting(true)
-    try {
-      const url = `/v1/users/${userId}`
-      await fetchClient(url, {
-        method: 'DELETE',
-      })
-
-      toast({
-        title: 'Account Deleted',
-        description: 'Your account has been removed successfully.',
-      })
-
-      await logout()
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete account. Please try again later.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsDeleting(false)
-      setIsDeleteModalOpen(false)
-    }
+  const handleDeleteAccount = () => {
+    if (!user?.id) return
+    setIsDeleteModalOpen(false)
+    toast.success('Account deleted (design-only)')
   }
 
   return (
@@ -196,7 +137,7 @@ export default function SecurityPage() {
             <button
               onClick={() => setIsDeleteModalOpen(true)}
               disabled={isDeleting}
-              className="inline-flex items-center gap-2 rounded-md bg-danger px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-destructive/90 active:scale-95 disabled:opacity-50"
+              className="bg-danger hover:bg-destructive/90 inline-flex items-center gap-2 rounded-md px-4 py-2 text-xs font-bold text-white shadow-sm transition-all active:scale-95 disabled:opacity-50"
             >
               {isDeleting ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -218,25 +159,31 @@ export default function SecurityPage() {
       <Modal isOpen={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <ModalContent isBlurred role="alertdialog">
           <ModalHeader className="flex flex-col items-center text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
-              <AlertTriangle className="h-6 w-6 text-destructive text-red-500" />
+            <div className="bg-destructive/10 mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+              <AlertTriangle className="text-destructive h-6 w-6 text-red-500" />
             </div>
             <ModalTitle className="text-xl font-bold text-red-500">Delete Account</ModalTitle>
           </ModalHeader>
           <ModalBody className="py-4 text-center">
-            <p className="text-base font-medium text-foreground">
-              Are you sure you want to permanently delete your account? This action cannot be undone.
+            <p className="text-foreground text-base font-medium">
+              Are you sure you want to permanently delete your account? This action cannot be
+              undone.
             </p>
           </ModalBody>
           <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-center">
-            <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} disabled={isDeleting} className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteModalOpen(false)}
+              disabled={isDeleting}
+              className="w-full sm:w-auto"
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
               onClick={handleDeleteAccount}
               disabled={isDeleting}
-              className="w-full bg-destructive text-white sm:w-auto bg-danger"
+              className="bg-destructive bg-danger w-full text-white sm:w-auto"
             >
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm Delete
