@@ -1,19 +1,18 @@
 'use client'
-import { sampleProducts } from '../shop/store'
+import { sampleProducts, useProductStore } from '../shop/store'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, useSearchParams } from 'next/navigation'
 import ProductVariant_05 from '../../../components/commerce-ui/product-variants-05'
-import { use } from 'react'
 
-interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}
+export default function ProductDetailPage() {
+  const searchParams = useSearchParams()
+  const selectedProductId = useProductStore((s) => s.selectedProductId)
+  const products = useProductStore((s) => s.products)
 
-export default function ProductDetailPage(props: PageProps) {
-  const searchParams = use(props.searchParams)
-  const id = searchParams.id
+  const idParam = searchParams.get('id')
+  const resolvedId = idParam ? Number(idParam) : selectedProductId
 
-  if (!id || Array.isArray(id)) {
+  if (!resolvedId || Number.isNaN(resolvedId)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -26,7 +25,8 @@ export default function ProductDetailPage(props: PageProps) {
     )
   }
 
-  const product = sampleProducts.find((p) => p.id === Number(id))
+  const product =
+    products.find((p) => p.id === resolvedId) ?? sampleProducts.find((p) => p.id === resolvedId)
 
   if (!product) {
     return notFound()

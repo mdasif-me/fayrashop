@@ -4,24 +4,17 @@ export const API_BASE_URL =
     : process.env.NEXT_PUBLIC_API_URL || 'https://fayrashop-ssr.vercel.app'
 
 export function getStoredToken() {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('token')
+  return null
 }
 
 export function getStoredRefreshToken() {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem('refresh_token')
+  return null
 }
 
 export function setStoredToken(token: string, refreshToken?: string) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem('token', token)
-  document.cookie = `token=${token}; path=/; max-age=86400; SameSite=Lax; Secure`
-
-  if (refreshToken) {
-    localStorage.setItem('refresh_token', refreshToken)
-    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=604800; SameSite=Lax; Secure`
-  }
+  void token
+  void refreshToken
+  return
 }
 
 export function clearStoredAuth() {
